@@ -170,25 +170,26 @@ def filas_entrenamientos(con) -> list[tuple]:
 
 
 def filas_pesos(con) -> list[tuple]:
-    filas = []
+    """Una fila por medición: el peso y el % de grasa de la misma hora van juntos."""
+    medidas: dict[str, dict] = {}
     for tipo in ("weight", "body-fat"):
         for fecha, p in leer_raw(con, tipo):
             obj = p[campo(tipo)]
             if tipo == "weight":
-                kg, grasa = pos(obj.get("weightGrams")), None
-                if kg is None:                        # hay pesos de 0 g (pruebas antiguas)
-                    continue
-                kg /= 1000
+                valor = {"kg": red((pos(obj.get("weightGrams")) or 0) / 1000, 2) or None}  # hay pesos de 0 g
             else:
-                kg = None
-                grasa = next((pos(v) for k, v in obj.items() if "percent" in k.lower()), None)
-                if grasa is None:
-                    continue
-            t = obj.get("sampleTime", {}).get("civilTime", {}).get("time", {})
+                valor = {"grasa": pos(obj.get("percentage"))}
+            if not any(valor.values()):
+                continue
+            st = obj.get("sampleTime", {})
+            t = st.get("civilTime", {}).get("time", {})
             hora = f"{t.get('hours', 0):02d}:{t.get('minutes', 0):02d}"
-            filas.append((p.get("name") or f"{tipo}/{fecha}T{hora}", fecha, hora, kg, grasa,
-                          p.get("dataSource", {}).get("recordingMethod")))
-    return filas
+            m = medidas.setdefault(st.get("physicalTime") or f"{fecha}T{hora}", {
+                "id": p.get("name"), "fecha": fecha, "hora": hora,
+                "origen": p.get("dataSource", {}).get("recordingMethod")})
+            m.update(valor)
+    return [(m["id"], m["fecha"], m["hora"], m.get("kg"), m.get("grasa"), m["origen"])
+            for _, m in sorted(medidas.items())]
 
 
 def filas_dias(con, sueno: list[tuple]) -> list[tuple]:

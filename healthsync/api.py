@@ -59,6 +59,25 @@ def list_all(s: AuthorizedSession, data_type: str, params: dict | None = None,
     raise ApiError(f"{data_type}: límite de {max_pages} páginas alcanzado")
 
 
+def list_recientes(s: AuthorizedSession, data_type: str, fecha_de, desde: date,
+                   page_size: int = 25, max_pages: int = 400) -> list[dict]:
+    """'list' sin filtro (p. ej. sleep, que no admite filtrar por fecha). La API devuelve primero
+    lo más reciente: para cuando dos páginas seguidas son enteras anteriores a 'desde'."""
+    out, token, viejas = [], None, 0
+    for _ in range(max_pages):
+        p = {"pageSize": page_size}
+        if token:
+            p["pageToken"] = token
+        data = request(s, "GET", f"{API}/dataTypes/{data_type}/dataPoints", params=p)
+        pagina = [x for x in data.get("dataPoints", []) if (fecha_de(x) or "9999") >= desde.isoformat()]
+        out.extend(pagina)
+        viejas = 0 if pagina else viejas + 1
+        token = data.get("nextPageToken")
+        if not token or viejas >= 2:
+            return out
+    raise ApiError(f"{data_type}: límite de {max_pages} páginas alcanzado")
+
+
 def daily_rollup(s: AuthorizedSession, data_type: str, start: date, end_excl: date,
                  max_days: int) -> list[dict]:
     """dailyRollUp troceado en bloques de max_days (límite de la API para cada tipo)."""

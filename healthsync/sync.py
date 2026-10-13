@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .config import DB_FILE
 from .db import conectar
-from .normalizar import ROLLUP, guardar_raw, reconstruir
+from .normalizar import ROLLUP, fecha_de, guardar_raw, reconstruir
 
 # Resúmenes diarios y muestras: pocos registros, se piden enteros en cada pasada
 TIPOS_LISTA = [
@@ -31,8 +31,9 @@ TIPOS_LISTA = [
     "weight",
     "body-fat",
 ]
-# Sesiones: con filtro de fecha (máximo 25 por página)
-TIPOS_SESION = ["sleep", "exercise"]
+# Sesiones (máximo 25 por página). exercise admite filtro de fecha; sleep no (error 400
+# INVALID_DATA_POINT_FILTER_DATA_TYPE_MEMBER), así que se lee de lo más nuevo hacia atrás.
+TIPOS_SESION = ["exercise"]
 # Agregados por día: (tipo, días máximos por llamada)
 TIPOS_ROLLUP = [
     ("steps", 90),
@@ -71,6 +72,7 @@ def descargar(con: sqlite3.Connection, desde: date, hasta_excl: date) -> list[st
         campo = tipo.replace("-", "_")
         flt = f'{campo}.interval.civil_start_time >= "{(desde - timedelta(days=1)).isoformat()}T00:00:00"'
         paso(tipo, lambda t=tipo, f=flt: api.list_all(s, t, {"filter": f, "pageSize": 25}))
+    paso("sleep", lambda: api.list_recientes(s, "sleep", lambda p: fecha_de("sleep", p), desde))
     for tipo, max_dias in TIPOS_ROLLUP:
         paso(tipo + ROLLUP, lambda t=tipo, m=max_dias: api.daily_rollup(s, t, desde, hasta_excl, m))
     return errores

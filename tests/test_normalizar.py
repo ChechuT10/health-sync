@@ -82,14 +82,19 @@ class Normalizar(unittest.TestCase):
         self.assertEqual(d["2026-10-02"]["tipo_dia"], "completo")
         self.assertEqual(d["2026-10-03"]["tipo_dia"], "sin_noche")
 
-    def test_peso_cero_se_descarta(self):
+    def test_pesos_sin_ceros_y_con_grasa(self):
         peso = lambda g, s: {"name": f"w/{s}", "dataSource": {"recordingMethod": "MANUAL"}, "weight": {  # noqa: E731
             "sampleTime": {"physicalTime": f"2026-10-05T07:{s}:00Z",
                            "civilTime": {"date": dia(2026, 10, 5), "time": {"hours": 9, "minutes": int(s)}}},
             "weightGrams": g}}
+        grasa = {"name": "g/10", "bodyFat": {"percentage": 31.5, "sampleTime": {  # misma medición
+            "physicalTime": "2026-10-05T07:10:00Z",
+            "civilTime": {"date": dia(2026, 10, 5), "time": {"hours": 9, "minutes": 10}}}}}
         guardar_raw(self.con, "weight", [peso(99500, "10"), peso(0, "11")])
+        guardar_raw(self.con, "body-fat", [grasa])
         reconstruir(self.con)
-        self.assertEqual(self.con.execute("SELECT peso_kg, hora FROM pesos").fetchall(), [(99.5, "09:10")])
+        self.assertEqual(self.con.execute("SELECT peso_kg, grasa_pct, hora FROM pesos").fetchall(),
+                         [(99.5, 31.5, "09:10")])
 
 
 if __name__ == "__main__":
