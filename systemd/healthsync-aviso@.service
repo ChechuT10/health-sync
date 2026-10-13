@@ -1,0 +1,11 @@
+[Unit]
+Description=Health Sync: aviso por Telegram de que falló %i
+
+[Service]
+Type=oneshot
+User=healthsync
+Group=healthsync
+# Para leer el registro de la unidad que falló
+SupplementaryGroups=systemd-journal
+WorkingDirectory=/opt/healthsync/app
+ExecStart=/opt/healthsync/venv/bin/python -m healthsync.telegram fallo %i

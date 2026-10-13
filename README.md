@@ -78,6 +78,15 @@ sudo -u healthsync /opt/healthsync/venv/bin/python -m healthsync.sync --desde 20
 sudo cp systemd/healthsync-sync.* /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now healthsync-sync.timer
+
+# 7. Avisos por Telegram si la sincronización falla
+#    Crea un bot con @BotFather (y en /setjoingroups, Disable) y guarda su token sin que se vea:
+read -rsp "Token del bot: " T && echo "$T" | sudo -u healthsync tee /var/lib/healthsync/secrets/telegram_token >/dev/null && unset T
+sudo -u healthsync chmod 600 /var/lib/healthsync/secrets/telegram_token
+#    Escribe algo a tu bot en Telegram y guarda tu chat:
+sudo -u healthsync /opt/healthsync/venv/bin/python -m healthsync.telegram chat-id
+sudo cp systemd/healthsync-sync.service systemd/healthsync-aviso@.service /etc/systemd/system/
+sudo systemctl daemon-reload
 ```
 
 Más detalle en [`docs/datos.md`](docs/datos.md) (tablas y reglas) y [`docs/recuperacion.md`](docs/recuperacion.md).
