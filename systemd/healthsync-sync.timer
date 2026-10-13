@@ -1,0 +1,10 @@
+[Unit]
+Description=Health Sync: sincronización cada 4 horas
+
+[Timer]
+OnCalendar=00/4:15
+RandomizedDelaySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

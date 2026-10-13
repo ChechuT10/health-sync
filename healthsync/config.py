@@ -1,0 +1,19 @@
+"""Rutas y constantes compartidas. HEALTHSYNC_DATA permite usar otra carpeta para pruebas."""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+DATA_DIR = Path(os.environ.get("HEALTHSYNC_DATA", "/var/lib/healthsync"))
+SECRETS = DATA_DIR / "secrets"
+CLIENT_FILE = SECRETS / "client_secret.json"
+TOKEN_FILE = SECRETS / "token.json"
+DB_FILE = DATA_DIR / "db" / "salud.db"
+
+API = "https://health.googleapis.com/v4/users/me"
+TZ = ZoneInfo("Europe/Madrid")
+
+# Tipo de día (ver docs/datos.md): cobertura = fracción del día con pulso registrado
+COBERTURA_SIN_RELOJ = 0.30   # por debajo, el reloj no se llevó de día
+COBERTURA_COMPLETO = 0.50    # con noche y al menos esto, el día es completo

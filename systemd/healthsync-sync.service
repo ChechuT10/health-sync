@@ -1,0 +1,14 @@
+[Unit]
+Description=Health Sync: sincroniza Google Health con la base de datos
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=healthsync
+Group=healthsync
+WorkingDirectory=/opt/healthsync/app
+ExecStart=/opt/healthsync/venv/bin/python -m healthsync.sync
+# La Pi tiene 1 GB compartido con otros servicios
+MemoryMax=200M
+Nice=10
