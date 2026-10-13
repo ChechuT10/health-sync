@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from datetime import date
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -13,6 +14,9 @@ DB_FILE = DATA_DIR / "db" / "salud.db"
 
 API = "https://health.googleapis.com/v4/users/me"
 TZ = ZoneInfo("Europe/Madrid")
+
+# Las tablas limpias empiezan aquí; lo anterior se guarda en raw pero no se usa
+FECHA_INICIO = date.fromisoformat(os.environ.get("HEALTHSYNC_INICIO", "2026-09-01"))
 
 # Tipo de día (ver docs/datos.md): cobertura = fracción del día con pulso registrado
 COBERTURA_SIN_RELOJ = 0.30   # por debajo, el reloj no se llevó de día

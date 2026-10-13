@@ -7,12 +7,21 @@
 
 `ejecuciones` registra cada sincronización con su estado (`ok`, `parcial`, `error`).
 
+**Fecha de inicio:** las tablas limpias solo usan datos desde `FECHA_INICIO` (`healthsync/config.py`, por defecto 2026-09-01; se cambia con la variable `HEALTHSYNC_INICIO`). Lo anterior que devuelva la API se guarda en `raw`, pero no se usa.
+
+**Descartes:** los registros que no deben contar (pruebas, errores) se marcan en la tabla `descartes`. Siguen en `raw`, pero las tablas limpias los ignoran. Se pueden marcar por clave o todos los de un tipo en un día:
+
+```bash
+python -m healthsync.sync --descartar weight 2026-09-23 --motivo "pesos de prueba"
+```
+
 ## Qué se descarga
 
 | Tipo | Cómo | En cada pasada |
 |---|---|---|
 | `daily-resting-heart-rate`, `daily-heart-rate-variability`, `daily-oxygen-saturation`, `daily-respiratory-rate`, `weight`, `body-fat` | `list` | Todo (son pocos registros) |
-| `sleep`, `exercise` | `list` con filtro de fecha (25 por página) | Desde el día anterior al pedido |
+| `exercise` | `list` con filtro de fecha (25 por página) | Desde el día anterior al pedido |
+| `sleep` | `list` sin filtro (la API no admite filtrar el sueño por fecha): de lo más nuevo hacia atrás | Hasta pasar la fecha pedida |
 | `steps`, `distance`, `floors`, `active-energy-burned`, `active-zone-minutes`, `sedentary-period`, `time-in-heart-rate-zone`, `total-calories`, `heart-rate` | `dailyRollUp` (une reloj y móvil sin duplicar) | Los últimos 3 días |
 
 Los agregados diarios se guardan en `raw` con el sufijo `:dia` (por ejemplo, `steps:dia`).

@@ -96,6 +96,15 @@ class Normalizar(unittest.TestCase):
         self.assertEqual(self.con.execute("SELECT peso_kg, grasa_pct, hora FROM pesos").fetchall(),
                          [(99.5, 31.5, "09:10")])
 
+    def test_antes_de_inicio_y_descartes_no_cuentan(self):
+        guardar_raw(self.con, "steps" + ROLLUP, [
+            rollup(dia(2025, 7, 1), "steps", {"countSum": "9000"}),     # antes de FECHA_INICIO
+            rollup(dia(2026, 10, 6), "steps", {"countSum": "7000"}),
+            rollup(dia(2026, 10, 7), "steps", {"countSum": "3"}),       # dato malo
+        ])
+        self.con.execute("INSERT INTO descartes (tipo, clave) VALUES (?, ?)", ("steps" + ROLLUP, "2026-10-07"))
+        self.assertEqual(list(self.dias()), ["2026-10-06"])
+
 
 if __name__ == "__main__":
     unittest.main()

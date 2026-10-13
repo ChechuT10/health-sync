@@ -87,6 +87,16 @@ CREATE TABLE IF NOT EXISTS pesos (
     origen    TEXT                    -- MANUAL, báscula...
 );
 
+-- Registros de la API que no se usan (pruebas, errores). Se quedan en raw, pero las
+-- tablas limpias los ignoran. Se añaden con: python -m healthsync.sync --descartar TIPO CLAVE
+CREATE TABLE IF NOT EXISTS descartes (
+    tipo    TEXT NOT NULL,
+    clave   TEXT NOT NULL,
+    motivo  TEXT,
+    fecha   TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (tipo, clave)
+);
+
 -- Registro de cada sincronización, para avisos y depuración
 CREATE TABLE IF NOT EXISTS ejecuciones (
     id       INTEGER PRIMARY KEY,

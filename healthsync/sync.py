@@ -6,6 +6,8 @@ Uso (en la Raspberry, como usuario healthsync, desde /opt/healthsync/app):
   python -m healthsync.sync --desde 2026-01-01  # carga histórica
   python -m healthsync.sync --importar /var/lib/healthsync/db/raw   # desde una descarga de 'fase0.py dump'
   python -m healthsync.sync --reconstruir       # solo rehace las tablas limpias
+  python -m healthsync.sync --descartar weight 2026-09-23 --motivo "pesos de prueba"
+                                                # ignora esos registros (clave o fecha)
 
 Sale con código 1 si algún tipo de dato falla (para que systemd avise).
 """
@@ -13,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
 import sys
 from datetime import date, datetime, timedelta
@@ -112,6 +115,9 @@ def main() -> int:
     g.add_argument("--desde", type=date.fromisoformat, help="fecha inicial (carga histórica)")
     g.add_argument("--importar", type=Path, help="carpeta de 'fase0.py dump' en vez de la API")
     g.add_argument("--reconstruir", action="store_true", help="solo rehace las tablas limpias")
+    g.add_argument("--descartar", nargs=2, metavar=("TIPO", "CLAVE_O_FECHA"),
+                   help="no usar ese registro, o todos los de ese tipo en esa fecha (AAAA-MM-DD)")
+    ap.add_argument("--motivo", help="motivo del descarte")
     ap.add_argument("--db", type=Path, default=DB_FILE)
     args = ap.parse_args()
 
@@ -121,7 +127,15 @@ def main() -> int:
     con.commit()
     errores: list[str] = []
     try:
-        if args.importar:
+        if args.descartar:
+            tipo, clave = args.descartar
+            columna = "fecha" if re.fullmatch(r"\d{4}-\d{2}-\d{2}", clave) else "clave"
+            n = con.execute(f"""INSERT OR IGNORE INTO descartes (tipo, clave, motivo)
+                                SELECT tipo, clave, ? FROM raw WHERE tipo = ? AND {columna} = ?""",
+                            (args.motivo, tipo, clave)).rowcount
+            con.commit()
+            print(f"==> {n} registro(s) de {tipo} descartados")
+        elif args.importar:
             print(f"==> Importando {args.importar}")
             importar(con, args.importar)
         elif not args.reconstruir:

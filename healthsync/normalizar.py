@@ -5,6 +5,7 @@ Reglas (comprobadas con los datos reales, ver docs/datos.md):
 - La API manda muchos enteros como texto ("76"): se convierten.
 - Las fechas son civiles de Madrid. El sueño cuenta para el día en que te despiertas.
 - Noche = sesión con mainSleep y sin nap (hay siestas de tarde con las dos marcas).
+- Solo se usa lo posterior a FECHA_INICIO y lo que no está en la tabla descartes.
 """
 from __future__ import annotations
 
@@ -14,7 +15,7 @@ import re
 import sqlite3
 from datetime import datetime, timedelta, timezone
 
-from .config import COBERTURA_COMPLETO, COBERTURA_SIN_RELOJ
+from .config import COBERTURA_COMPLETO, COBERTURA_SIN_RELOJ, FECHA_INICIO
 
 ROLLUP = ":dia"   # sufijo de los tipos agregados por día (dailyRollUp), p. ej. "steps:dia"
 
@@ -121,7 +122,12 @@ def guardar_raw(con: sqlite3.Connection, tipo: str, puntos: list[dict]) -> int:
 
 
 def leer_raw(con: sqlite3.Connection, tipo: str):
-    for fecha, txt in con.execute("SELECT fecha, json FROM raw WHERE tipo = ? ORDER BY fecha", (tipo,)):
+    """Registros de un tipo desde FECHA_INICIO, sin los descartados."""
+    for fecha, txt in con.execute(
+            """SELECT r.fecha, r.json FROM raw r
+               LEFT JOIN descartes d ON d.tipo = r.tipo AND d.clave = r.clave
+               WHERE r.tipo = ? AND r.fecha >= ? AND d.clave IS NULL
+               ORDER BY r.fecha""", (tipo, FECHA_INICIO.isoformat())):
         yield fecha, json.loads(txt)
 
 

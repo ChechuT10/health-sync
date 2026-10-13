@@ -74,7 +74,7 @@ sudo -u healthsync /opt/healthsync/venv/bin/python /opt/healthsync/app/tools/fas
 
 # 6. Base de datos: carga histórica y sincronización automática cada 4 horas
 cd /opt/healthsync/app
-sudo -u healthsync /opt/healthsync/venv/bin/python -m healthsync.sync --desde 2026-01-01
+sudo -u healthsync /opt/healthsync/venv/bin/python -m healthsync.sync --desde 2026-09-01
 sudo cp systemd/healthsync-sync.* /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now healthsync-sync.timer
