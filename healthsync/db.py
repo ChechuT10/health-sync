@@ -102,6 +102,24 @@ CREATE TABLE IF NOT EXISTS medidas (
     gh_grasa    TEXT
 );
 
+-- Objetivo de cada semana (lo calcula healthsync.calorias; la IA no lo toca)
+CREATE TABLE IF NOT EXISTS plan_semana (
+    semana             TEXT PRIMARY KEY,  -- lunes
+    numero             INTEGER NOT NULL,
+    kcal               INTEGER NOT NULL,
+    proteina_g         INTEGER NOT NULL,
+    grasa_g            INTEGER NOT NULL,
+    hidratos_g         INTEGER NOT NULL,
+    peso_kg            REAL,
+    metabolismo_basal  INTEGER,
+    gasto_estimado     INTEGER,
+    gasto_real         INTEGER,
+    ritmo_pct          REAL,              -- % del peso perdido por semana (positivo = baja)
+    fase               TEXT NOT NULL,     -- deficit o descanso
+    motivo             TEXT,
+    creado             TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Valores sueltos del sistema (p. ej. el último mensaje leído por el bot)
 CREATE TABLE IF NOT EXISTS estado (
     clave  TEXT PRIMARY KEY,

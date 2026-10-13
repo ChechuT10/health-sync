@@ -24,6 +24,7 @@ AYUDA = """Comandos de Health Sync:
 
 /peso 99,4 — anota tu peso (kg)
 /medidas cintura 102 cuello 41 — calcula tu % de grasa (método de la Marina); puedes añadir «peso 99,4»
+/calorias — calorías y macros de esta semana, y por qué
 /estado — última sincronización, último peso y la semana
 /ayuda — esta ayuda
 
@@ -101,13 +102,25 @@ def cmd_estado(con, _args: str) -> str:
     return "\n".join(lineas)
 
 
-COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado}
+def cmd_calorias(con, _args: str) -> str:
+    from . import calorias
+    hoy = datetime.now(TZ).date()
+    guardado = con.execute("SELECT 1 FROM plan_semana WHERE semana = ?",
+                           (calorias.lunes(hoy).isoformat(),)).fetchone()
+    pr = calorias.proponer(con, hoy)
+    if pr is None or guardado:
+        return calorias.texto(pr)
+    return calorias.texto(pr) + "\n\n(Propuesta: el plan de la semana se fija el lunes a las 10:00.)"
+
+
+COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado, "/calorias": cmd_calorias}
 
 
 # Lista que Telegram enseña al escribir «/» y en el botón Menú
 MENU = [
     ("peso", "Anotar tu peso"),
     ("medidas", "Cintura y cuello → % de grasa"),
+    ("calorias", "Calorías y macros de esta semana"),
     ("estado", "Última sincronización, peso y semana"),
     ("ayuda", "Comandos y cómo medirte"),
 ]

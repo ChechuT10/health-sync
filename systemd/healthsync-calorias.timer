@@ -1,0 +1,9 @@
+[Unit]
+Description=Health Sync: plan de calorías cada lunes a las 10:00
+
+[Timer]
+OnCalendar=Mon *-*-* 10:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

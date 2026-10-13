@@ -1,0 +1,10 @@
+[Unit]
+Description=Health Sync: calorías y macros de la semana
+OnFailure=healthsync-aviso@%n.service
+
+[Service]
+Type=oneshot
+User=healthsync
+Group=healthsync
+WorkingDirectory=/opt/healthsync/app
+ExecStart=/opt/healthsync/venv/bin/python -m healthsync.calorias --guardar

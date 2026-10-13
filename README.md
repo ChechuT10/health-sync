@@ -94,7 +94,21 @@ sudo -u healthsync nano config.toml        # tu altura y fecha de nacimiento
 sudo cp systemd/healthsync-bot.service systemd/healthsync-recordatorio.* /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now healthsync-bot.service healthsync-recordatorio.timer
+
+# 9. Plan de calorías cada lunes a las 10:00 (se manda por Telegram)
+sudo cp systemd/healthsync-calorias.* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now healthsync-calorias.timer
 ```
+
+### Calorías
+
+`healthsync/calorias.py` calcula cada lunes el objetivo diario con reglas fijas (la IA no decide estos números):
+
+- **Primera semana:** metabolismo basal (media de Mifflin-St Jeor y Katch-McArdle si hay % de grasa) × factor de actividad según los pasos, menos un 21 %.
+- **Después:** tendencia del peso de las últimas 4 semanas (sin las 2 primeras del plan, que son agua). Ritmo de 0,3-1 % del peso por semana: se mantiene. Más de 1 %: +150 kcal. Menos de 0,3 % dos revisiones seguidas: −100 kcal. Hacen falta 3 pesadas en 14 días o más; si no, no se toca nada.
+- **Gasto real** (con 3 semanas de plan): lo comido + lo perdido × 7.700 kcal/kg.
+- **Límites fijos en el código:** déficit máximo del 25 % del gasto, nunca por debajo del metabolismo basal ni de 1.800 kcal, cambios de 150 kcal como mucho, proteína ≥ 150 g y grasa ≥ 60 g, y 2 semanas a mantenimiento cada 14.
 
 ### Bot de Telegram
 
@@ -104,6 +118,7 @@ Solo responde a tu chat. Cada medida se guarda en la Raspberry y se escribe en G
 |---|---|
 | `/peso 99,4` | Anota el peso y lo compara con el anterior |
 | `/medidas cintura 102 cuello 41` | Calcula el % de grasa con el método de la Marina de EE. UU. (admite `peso 99,4`) |
+| `/calorias` | Calorías y macros de la semana, con el porqué |
 | `/estado` | Última sincronización, último peso y resumen de 7 días |
 
 Los comandos salen en el botón **Menú** de Telegram y al escribir `/` (el bot los registra con `setMyCommands` al arrancar). Sin números, `/peso` y `/medidas` te los preguntan.

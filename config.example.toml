@@ -13,10 +13,8 @@ zona_horaria = "Europe/Madrid"
 
 [objetivo]
 grasa_objetivo_pct = 16    # % de grasa al que se quiere llegar
-perdida_max_pct_semana = 1.0   # límite de velocidad: % del peso corporal por semana
-perdida_min_pct_semana = 0.25  # por debajo de esto, se ajustan las calorías
-deficit_max_pct = 25       # déficit máximo sobre el gasto estimado
-pausa_dieta_cada_semanas = 11
+# Los límites de seguridad (déficit máximo, suelo calórico, ritmo, pausas de dieta) NO se
+# configuran aquí: están fijos en healthsync/calorias.py para que no se puedan saltar sin querer.
 
 [comidas]
 comidas_dia_entreno = 5
