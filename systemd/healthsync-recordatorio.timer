@@ -1,8 +1,8 @@
 [Unit]
-Description=Health Sync: recordatorio de pesarse (cada tarde a las 20:00)
+Description=Health Sync: recordatorio de pesarse (cada día a las 6:00)
 
 [Timer]
-OnCalendar=*-*-* 20:00
+OnCalendar=*-*-* 06:00
 Persistent=false
 
 [Install]

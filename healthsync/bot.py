@@ -4,7 +4,7 @@ Solo responde a tu chat (secrets/telegram_chat_id); los demás mensajes se ignor
 
 Uso (como usuario healthsync, desde /opt/healthsync/app):
   python -m healthsync.bot                 # el servicio healthsync-bot
-  python -m healthsync.bot recordatorio    # lo lanza un temporizador cada tarde
+  python -m healthsync.bot recordatorio    # lo lanza un temporizador cada día a las 6:00
 """
 from __future__ import annotations
 
@@ -194,19 +194,29 @@ def bucle() -> None:
             con.commit()
 
 
+def aviso_pesarse(hoy: date, ultimo: date | None) -> str | None:
+    """Mensaje de las 6:00, o None si hoy no toca. Sin ninguna pesada: cada día. Lunes: si no
+    te has pesado desde el viernes (a las 10:00 sale el plan). Otros días: cada 3 días si
+    llevas más de 10 sin pesarte."""
+    dias = (hoy - ultimo).days if ultimo else None
+    if dias is None:
+        return ("⚖️ Buenos días. Aún no hay ninguna pesada: si puedes, pésate ahora en ayunas, "
+                "después del baño.\n/peso 99,4 · /medidas cintura 102 cuello 41")
+    if hoy.weekday() == 0 and dias >= 3:
+        return ("⚖️ Buenos días, toca pesarse: en ayunas, después del baño. Si puedes, mídete también.\n"
+                "/peso 99,4 · /medidas cintura 102 cuello 41\nA las 10:00 te llega el plan de la semana.")
+    if dias > 10 and dias % 3 == 2:
+        return f"⚖️ Buenos días. Llevas {dias} días sin pesarte: si puedes, hazlo ahora en ayunas.\n/peso 99,4"
+    return None
+
+
 def recordatorio() -> None:
-    """Domingo: toca pesarse y medirse (si no lo has hecho en 3 días). Otros días: aviso cada
-    3 días si llevas más de 10 sin pesarte."""
     con = conectar(DB_FILE)
     peso = ultimo_peso(con)
     con.close()
-    hoy = datetime.now(TZ).date()
-    dias = (hoy - date.fromisoformat(peso[0])).days if peso else None
-    if hoy.weekday() == 6 and (dias is None or dias >= 3):
-        telegram.enviar("⚖️ Domingo: si mañana puedes, pésate y mídete en ayunas.\n"
-                        "/peso 99,4 · /medidas cintura 102 cuello 41")
-    elif dias is not None and dias > 10 and dias % 3 == 2:
-        telegram.enviar(f"⚖️ Llevas {dias} días sin pesarte. Cuando puedas: /peso 99,4")
+    txt = aviso_pesarse(datetime.now(TZ).date(), date.fromisoformat(peso[0]) if peso else None)
+    if txt:
+        telegram.enviar(txt)
 
 
 def main() -> int:
