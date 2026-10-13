@@ -1,0 +1,43 @@
+# ==========================================================
+# Configuración de ejemplo de Health Sync
+#
+# Copia este archivo como config.toml en la Raspberry y rellénalo con tus datos.
+# config.toml está en .gitignore: tus datos personales nunca se suben a GitHub.
+# ==========================================================
+
+[persona]
+sexo = "hombre"            # "hombre" o "mujer" (método de la Marina de EE. UU.)
+fecha_nacimiento = "1990-01-01"
+altura_cm = 175
+zona_horaria = "Europe/Madrid"
+
+[objetivo]
+grasa_objetivo_pct = 16    # % de grasa al que se quiere llegar
+perdida_max_pct_semana = 1.0   # límite de velocidad: % del peso corporal por semana
+perdida_min_pct_semana = 0.25  # por debajo de esto, se ajustan las calorías
+deficit_max_pct = 25       # déficit máximo sobre el gasto estimado
+pausa_dieta_cada_semanas = 11
+
+[comidas]
+comidas_dia_entreno = 5
+comidas_dia_descanso = 4
+excluir = []               # alimentos que no se incluyen nunca, por ejemplo ["lentejas"]
+
+[entrenamiento]
+dias_por_semana = 4
+hora_habitual = "18:30"
+duracion_min = 60
+gimnasio = "cadena comercial con máquinas, mancuernas y multipower"
+
+# Limitaciones: el validador rechaza cualquier ejercicio que las incumpla
+[entrenamiento.limitaciones]
+flexion_rodilla_max_grados = 90   # 0 = sin límite
+evitar_press_sobre_cabeza = false
+cardio_intenso = true             # false = solo cardio moderado (zona 2)
+
+[impresora]
+nombre_cups = "Brother"
+
+[ia]
+modelo = "gemini-flash"    # nombre del modelo de la API de Gemini
+presupuesto_alerta_usd = 5
