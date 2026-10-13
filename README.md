@@ -106,6 +106,8 @@ Solo responde a tu chat. Cada medida se guarda en la Raspberry y se escribe en G
 | `/medidas cintura 102 cuello 41` | Calcula el % de grasa con el método de la Marina de EE. UU. (admite `peso 99,4`) |
 | `/estado` | Última sincronización, último peso y resumen de 7 días |
 
+Los comandos salen en el botón **Menú** de Telegram y al escribir `/` (el bot los registra con `setMyCommands` al arrancar). Sin números, `/peso` y `/medidas` te los preguntan.
+
 Cada tarde a las 20:00, `healthsync-recordatorio.timer` comprueba si toca pesarse: el domingo (si no te has pesado en 3 días) y, otros días, cada 3 días si llevas más de 10 sin pesarte.
 
 Más detalle en [`docs/datos.md`](docs/datos.md) (tablas y reglas) y [`docs/recuperacion.md`](docs/recuperacion.md).

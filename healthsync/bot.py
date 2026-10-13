@@ -8,6 +8,7 @@ Uso (como usuario healthsync, desde /opt/healthsync/app):
 """
 from __future__ import annotations
 
+import json
 import sqlite3
 import sys
 import time
@@ -25,6 +26,8 @@ AYUDA = """Comandos de Health Sync:
 /medidas cintura 102 cuello 41 — calcula tu % de grasa (método de la Marina); puedes añadir «peso 99,4»
 /estado — última sincronización, último peso y la semana
 /ayuda — esta ayuda
+
+Sin números, /peso y /medidas te preguntan. También los tienes en el botón Menú o escribiendo «/».
 
 Pésate y mídete siempre igual: por la mañana, en ayunas, después del baño. La cintura a la altura del ombligo y el cuello justo bajo la nuez, en cm."""
 
@@ -101,17 +104,45 @@ def cmd_estado(con, _args: str) -> str:
 COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado}
 
 
+# Lista que Telegram enseña al escribir «/» y en el botón Menú
+MENU = [
+    ("peso", "Anotar tu peso"),
+    ("medidas", "Cintura y cuello → % de grasa"),
+    ("estado", "Última sincronización, peso y semana"),
+    ("ayuda", "Comandos y cómo medirte"),
+]
+# Si mandas /peso o /medidas sin números, el bot los pregunta y espera tu respuesta
+PREGUNTAS = {
+    "/peso": "⚖️ ¿Cuánto pesas? Escribe solo el número, p. ej. 99,4",
+    "/medidas": "📏 Escribe cintura y cuello en cm, p. ej. 102 41 (puedes añadir «peso 99,4»)",
+}
+pendiente: str | None = None
+
+
 def atender(con: sqlite3.Connection, texto: str) -> str:
-    orden, _, args = texto.strip().partition(" ")
-    orden = orden.split("@")[0].lower()     # /peso@jt_salud_pi_bot
+    global pendiente
+    texto = texto.strip()
+    if texto.startswith("/"):
+        orden, _, args = texto.partition(" ")
+        orden = orden.split("@")[0].lower()     # /peso@jt_salud_pi_bot
+        pendiente = None
+    elif pendiente:                              # respuesta a una pregunta del bot
+        orden, args = pendiente, texto
+    else:
+        return "No te entiendo. Toca el botón Menú o escribe /ayuda."
     if orden in ("/start", "/ayuda", "/help"):
         return AYUDA
+    if orden in PREGUNTAS and not args.strip():
+        pendiente = orden
+        return PREGUNTAS[orden]
     if orden in COMANDOS:
         try:
-            return COMANDOS[orden](con, args)
+            respuesta = COMANDOS[orden](con, args)
         except medidas.MedidaError as e:
-            return f"❌ {e}"
-    return "No te entiendo. Escribe /ayuda para ver los comandos."
+            return f"❌ {e}" + ("\nPrueba otra vez o toca otro comando." if pendiente else "")
+        pendiente = None
+        return respuesta
+    return "No te entiendo. Toca el botón Menú o escribe /ayuda."
 
 
 def bucle() -> None:
@@ -119,6 +150,11 @@ def bucle() -> None:
     con = conectar(DB_FILE)
     fila = con.execute("SELECT valor FROM estado WHERE clave = 'bot_offset'").fetchone()
     offset = int(fila[0]) if fila else 0
+    try:
+        telegram._api("setMyCommands", commands=json.dumps(
+            [{"command": c, "description": d} for c, d in MENU], ensure_ascii=False))
+    except Exception as e:  # noqa: BLE001  (sin menú el bot funciona igual)
+        print(f"No se pudo registrar el menú: {e}", flush=True)
     print(f"Bot en marcha (offset {offset})", flush=True)
     while True:
         try:
