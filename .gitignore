@@ -1,0 +1,45 @@
+# ==========================================================
+# NUNCA subir a GitHub: credenciales, datos de salud y configuración personal
+# ==========================================================
+
+# Credenciales de Google, Telegram y Gemini
+client_secret*.json
+token*.json
+*.key
+*.pem
+.env
+.env.*
+secrets/
+
+# Configuración personal (peso, objetivos, lesiones...). Se sube solo el ejemplo.
+config.toml
+config.local.*
+
+# Datos de salud y salidas
+data/
+db/
+raw/
+*.db
+*.sqlite
+*.sqlite3
+*.jsonl
+*.db-wal
+*.db-shm
+pdf/
+*.pdf
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
