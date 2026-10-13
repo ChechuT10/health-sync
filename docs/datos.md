@@ -5,7 +5,17 @@
 1. **`raw`**: cada registro de la API tal cual, con una clave estable por tipo. Volver a descargar un registro no lo duplica; si cambió (un dato que llegó tarde), se actualiza.
 2. **Tablas limpias** (`dias`, `sueno`, `entrenamientos`, `pesos`): se reconstruyen enteras desde `raw` en cada sincronización (unos 2 s en una Pi 3B+).
 
-`ejecuciones` registra cada sincronización con su estado (`ok`, `parcial`, `error`).
+Además:
+
+| Tabla | Qué guarda |
+|---|---|
+| `medidas` | Lo que mandas por el bot (`/peso`, `/medidas`): peso, cintura, cuello y % de grasa (Marina). `gh_peso` y `gh_grasa` guardan el id del dato escrito en Google Health; si están vacíos, Google lo rechazó y solo existe la copia de la Pi. |
+| `plan_semana` | El objetivo de cada semana (lunes): kcal, macros, metabolismo basal, gasto estimado y real, ritmo, fase (`deficit` o `descanso`) y el porqué. Lo escribe `healthsync.calorias --guardar`. |
+| `estado` | Valores sueltos del programa, como el último mensaje leído por el bot (`bot_offset`). |
+| `descartes` | Registros de la API que no deben contar (ver abajo). |
+| `ejecuciones` | Cada sincronización con su estado (`ok`, `parcial`, `error`). |
+
+**`pesos`** une `weight` y `body-fat` de Google Health por hora de la muestra, y añade las medidas del bot que aún no están en Google Health (sin duplicar las que sí).
 
 **Fecha de inicio:** las tablas limpias solo usan datos desde `FECHA_INICIO` (`healthsync/config.py`, por defecto 2026-09-01; se cambia con la variable `HEALTHSYNC_INICIO`). Lo anterior que devuelva la API se guarda en `raw`, pero no se usa.
 
@@ -61,4 +71,8 @@ sqlite3 /var/lib/healthsync/db/salud.db
 SELECT fecha, tipo_dia, pasos, sueno_min / 60.0 AS horas, fc_reposo, vfc_ms FROM dias ORDER BY fecha DESC LIMIT 14;
 -- Últimas sincronizaciones
 SELECT inicio, estado, substr(detalle, 1, 80) FROM ejecuciones ORDER BY id DESC LIMIT 5;
+-- Medidas del bot y si llegaron a Google Health
+SELECT fecha, hora, peso_kg, cintura_cm, grasa_pct, gh_peso IS NOT NULL AS en_google FROM medidas ORDER BY id DESC LIMIT 10;
+-- Planes semanales
+SELECT semana, numero, fase, kcal, proteina_g, grasa_g, hidratos_g, ritmo_pct FROM plan_semana ORDER BY semana DESC;
 ```
