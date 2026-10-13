@@ -1,0 +1,9 @@
+[Unit]
+Description=Health Sync: recordatorio de pesarse (cada tarde a las 20:00)
+
+[Timer]
+OnCalendar=*-*-* 20:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target

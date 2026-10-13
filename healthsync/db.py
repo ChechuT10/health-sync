@@ -87,6 +87,27 @@ CREATE TABLE IF NOT EXISTS pesos (
     origen    TEXT                    -- MANUAL, báscula...
 );
 
+-- Medidas que mandas por el bot. También se escriben en Google Health (gh_peso, gh_grasa
+-- guardan su id); mientras no estén allí, las tablas limpias usan esta copia.
+CREATE TABLE IF NOT EXISTS medidas (
+    id          INTEGER PRIMARY KEY,
+    momento     TEXT NOT NULL,    -- UTC, ISO (…Z)
+    fecha       TEXT NOT NULL,    -- fecha civil de Madrid
+    hora        TEXT NOT NULL,
+    peso_kg     REAL,
+    cintura_cm  REAL,
+    cuello_cm   REAL,
+    grasa_pct   REAL,             -- método de la Marina de EE. UU.
+    gh_peso     TEXT,
+    gh_grasa    TEXT
+);
+
+-- Valores sueltos del sistema (p. ej. el último mensaje leído por el bot)
+CREATE TABLE IF NOT EXISTS estado (
+    clave  TEXT PRIMARY KEY,
+    valor  TEXT
+);
+
 -- Registros de la API que no se usan (pruebas, errores). Se quedan en raw, pero las
 -- tablas limpias los ignoran. Se añaden con: python -m healthsync.sync --descartar TIPO CLAVE
 CREATE TABLE IF NOT EXISTS descartes (
@@ -110,7 +131,7 @@ CREATE TABLE IF NOT EXISTS ejecuciones (
 
 def conectar(ruta: Path) -> sqlite3.Connection:
     ruta.parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(ruta)
+    con = sqlite3.connect(ruta, timeout=30)   # el bot y la sincronización pueden coincidir
     con.execute("PRAGMA journal_mode=WAL")    # menos escrituras en la microSD
     con.execute("PRAGMA synchronous=NORMAL")
     con.execute("PRAGMA foreign_keys=ON")

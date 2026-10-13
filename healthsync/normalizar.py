@@ -194,6 +194,14 @@ def filas_pesos(con) -> list[tuple]:
                 "id": p.get("name"), "fecha": fecha, "hora": hora,
                 "origen": p.get("dataSource", {}).get("recordingMethod")})
             m.update(valor)
+    # Lo mandado por el bot que aún no está en Google Health (o que Google rechazó)
+    for mid, momento, fecha, hora, kg, grasa, gh_peso, gh_grasa in con.execute(
+            """SELECT id, momento, fecha, hora, peso_kg, grasa_pct, gh_peso, gh_grasa
+               FROM medidas WHERE fecha >= ?""", (FECHA_INICIO.isoformat(),)):
+        valor = {"kg": kg if not gh_peso else None, "grasa": grasa if not gh_grasa else None}
+        if any(v is not None for v in valor.values()):
+            m = medidas.setdefault(momento, {"id": f"bot/{mid}", "fecha": fecha, "hora": hora, "origen": "BOT"})
+            m.update({k: v for k, v in valor.items() if v is not None})
     return [(m["id"], m["fecha"], m["hora"], m.get("kg"), m.get("grasa"), m["origen"])
             for _, m in sorted(medidas.items())]
 

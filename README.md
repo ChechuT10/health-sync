@@ -87,7 +87,26 @@ sudo -u healthsync chmod 600 /var/lib/healthsync/secrets/telegram_token
 sudo -u healthsync /opt/healthsync/venv/bin/python -m healthsync.telegram chat-id
 sudo cp systemd/healthsync-sync.service systemd/healthsync-aviso@.service /etc/systemd/system/
 sudo systemctl daemon-reload
+
+# 8. Bot (/peso, /medidas, /estado) y recordatorio de pesarse
+sudo -u healthsync cp config.example.toml config.toml
+sudo -u healthsync nano config.toml        # tu altura y fecha de nacimiento
+sudo cp systemd/healthsync-bot.service systemd/healthsync-recordatorio.* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now healthsync-bot.service healthsync-recordatorio.timer
 ```
+
+### Bot de Telegram
+
+Solo responde a tu chat. Cada medida se guarda en la Raspberry y se escribe en Google Health (peso y % de grasa), que es la copia que sobrevive si falla la tarjeta.
+
+| Comando | Qué hace |
+|---|---|
+| `/peso 99,4` | Anota el peso y lo compara con el anterior |
+| `/medidas cintura 102 cuello 41` | Calcula el % de grasa con el método de la Marina de EE. UU. (admite `peso 99,4`) |
+| `/estado` | Última sincronización, último peso y resumen de 7 días |
+
+Cada tarde a las 20:00, `healthsync-recordatorio.timer` comprueba si toca pesarse: el domingo (si no te has pesado en 3 días) y, otros días, cada 3 días si llevas más de 10 sin pesarte.
 
 Más detalle en [`docs/datos.md`](docs/datos.md) (tablas y reglas) y [`docs/recuperacion.md`](docs/recuperacion.md).
 

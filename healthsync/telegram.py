@@ -26,7 +26,8 @@ CHAT_FILE = SECRETS / "telegram_chat_id"
 def _api(metodo: str, **params) -> dict:
     token = TOKEN_FILE.read_text().strip()
     datos = urllib.parse.urlencode(params).encode()
-    with urllib.request.urlopen(f"https://api.telegram.org/bot{token}/{metodo}", datos, timeout=30) as r:
+    espera = int(params.get("timeout", 0)) + 30          # getUpdates espera hasta 'timeout' s
+    with urllib.request.urlopen(f"https://api.telegram.org/bot{token}/{metodo}", datos, timeout=espera) as r:
         res = json.load(r)
     if not res.get("ok"):
         raise RuntimeError(f"Telegram {metodo}: {res.get('description')}")

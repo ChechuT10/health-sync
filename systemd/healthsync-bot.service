@@ -1,0 +1,17 @@
+[Unit]
+Description=Health Sync: bot de Telegram
+Wants=network-online.target
+After=network-online.target
+OnFailure=healthsync-aviso@%n.service
+
+[Service]
+User=healthsync
+Group=healthsync
+WorkingDirectory=/opt/healthsync/app
+ExecStart=/opt/healthsync/venv/bin/python -m healthsync.bot
+Restart=on-failure
+RestartSec=30
+MemoryMax=100M
+
+[Install]
+WantedBy=multi-user.target
