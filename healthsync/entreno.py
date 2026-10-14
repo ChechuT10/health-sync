@@ -536,6 +536,12 @@ def hoja_id(con: sqlite3.Connection) -> str | None:
     return f[0] if f else None
 
 
+def pestanas_terminadas(con: sqlite3.Connection, hoy: date) -> set[str]:
+    """Pestañas de semanas ya acabadas (antes de la que está en vigor): se ocultan para no liarse."""
+    return {f[0] for f in con.execute("SELECT pestana FROM entreno_semana WHERE semana < ? AND pestana IS NOT NULL",
+                                      (calorias.martes_en_vigor(hoy).isoformat(),))}
+
+
 def leer(con: sqlite3.Connection, hoy: date, log=print) -> int:
     """Lee las pestañas de esta semana y la siguiente, guarda las series y refresca objetivos pendientes."""
     from . import api, sheets
@@ -575,6 +581,8 @@ def leer(con: sqlite3.Connection, hoy: date, log=print) -> int:
         con.execute("UPDATE entreno_semana SET plan = ? WHERE semana = ?",
                     (json.dumps(p, ensure_ascii=False), semana.isoformat()))
         con.commit()
+    if ocultas := sheets.ocultar(s, id_hoja, pestanas_terminadas(con, hoy)):
+        log(f"Pestañas ocultadas (semanas terminadas): {', '.join(ocultas)}")
     log(f"Gimnasio: {total} series leídas.")
     return total
 

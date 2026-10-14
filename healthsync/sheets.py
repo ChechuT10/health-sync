@@ -30,6 +30,17 @@ def pestanas(s: AuthorizedSession, id_hoja: str) -> dict[str, int]:
     return {h["properties"]["title"]: h["properties"]["sheetId"] for h in r.get("sheets", [])}
 
 
+def ocultar(s: AuthorizedSession, id_hoja: str, titulos: set[str]) -> list[str]:
+    """Oculta esas pestañas (si existen y no lo están ya). Devuelve las que ha ocultado."""
+    r = request(s, "GET", f"{URL}/{id_hoja}", params={"fields": "sheets.properties(sheetId,title,hidden)"})
+    cambios = [h["properties"] for h in r.get("sheets", [])
+               if h["properties"]["title"] in titulos and not h["properties"].get("hidden")]
+    if cambios:
+        lote(s, id_hoja, [{"updateSheetProperties": {"properties": {"sheetId": p["sheetId"], "hidden": True},
+                                                     "fields": "hidden"}} for p in cambios])
+    return [p["title"] for p in cambios]
+
+
 def lote(s: AuthorizedSession, id_hoja: str, peticiones: list[dict]) -> dict:
     return request(s, "POST", f"{URL}/{id_hoja}:batchUpdate", json={"requests": peticiones})
 

@@ -174,6 +174,14 @@ class ConBase(unittest.TestCase):
         self.assertIn("se mantiene", cambios)
         self.assertEqual(p["semana_bloque"], 13)
 
+    def test_pestanas_terminadas(self):
+        for n in range(3):
+            semana = MARTES + timedelta(weeks=n)
+            e.guardar_semana(self.con, e.plan(self.con, semana, LUNES), e.nombre_pestana(semana), "")
+        lunes_3 = LUNES + timedelta(weeks=2)              # 2 de nov.: en vigor la del 27/10, ya creada la del 3/11
+        self.assertEqual(e.pestanas_terminadas(self.con, lunes_3), {"Semana 20-10"})
+        self.assertEqual(e.pestanas_terminadas(self.con, lunes_3 + timedelta(days=1)), {"Semana 20-10", "Semana 27-10"})
+
     def test_bot_entreno(self):
         p = e.plan(self.con, MARTES, LUNES)
         e.guardar_semana(self.con, p, "Semana 20-10", "")
