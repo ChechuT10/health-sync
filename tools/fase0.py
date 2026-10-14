@@ -52,6 +52,7 @@ SCOPES = [
     P + "nutrition.readonly",
     P + "nutrition.writeonly",                         # comidas (fases siguientes)
     P + "profile.readonly",
+    "https://www.googleapis.com/auth/drive.file",   # solo los archivos que crea la Pi (Sheet del gimnasio)
 ]
 
 

@@ -122,6 +122,7 @@ Solo responde a tu chat. Cada medida se guarda en la Raspberry y se escribe en G
 | `/calorias` | Calorías y macros de la semana, con el porqué |
 | `/hoy` | El menú de hoy |
 | `/compra` | La lista de la compra de la semana |
+| `/entreno` | La sesión de gimnasio de hoy (o la siguiente) |
 | `/estado` | Última sincronización, último peso y resumen de 7 días |
 
 Los comandos salen en el botón **Menú** de Telegram y al escribir `/` (el bot los registra con `setMyCommands` al arrancar). Sin números, `/peso` y `/medidas` te los preguntan.
@@ -140,7 +141,7 @@ python3 -m unittest      # desde la raíz del repositorio; solo usa la bibliotec
 
 - [x] **Fase 0. Validación:** acceso a la API, OAuth permanente, Raspberry sin pantalla, impresión en red, descarga de todos los tipos de dato
 - [ ] **Fase 1. Producto mínimo:** ~~SQLite, sincronización cada 4 h, avisos de fallo, bot de Telegram para el peso y las medidas, cálculo de calorías con límites, tabla de alimentos, menú con Gemini revisado e impreso~~ ✓ ([docs/menu.md](docs/menu.md))
-- [ ] **Fase 2. Entrenamiento:** rutina en Google Sheets, lectura de series y progresión según la recuperación
+- [x] **Fase 2. Entrenamiento:** ~~rutina por bloques, Google Sheet, lectura de series, progresión según la recuperación y cambios de ejercicios con Gemini~~ ✓ ([docs/entreno.md](docs/entreno.md))
 - [ ] **Fase 3. Nutrición automática:** comidas escritas en Google Health y estimación por foto
 - [ ] **Fase 4. Robustez:** gráficas de tendencia, pausas de dieta y descargas automáticas
 

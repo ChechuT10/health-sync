@@ -130,6 +130,48 @@ CREATE TABLE IF NOT EXISTS menu_semana (
     creado         TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Gimnasio (healthsync.entreno). Bloque = rutina de varias semanas; empieza un martes
+CREATE TABLE IF NOT EXISTS rutina_bloque (
+    inicio   TEXT PRIMARY KEY,  -- martes de la primera semana
+    rutina   TEXT NOT NULL,     -- JSON: días, ejercicios, variantes, series, reps, RIR…
+    origen   TEXT NOT NULL,     -- base, ia (renovación) o ia_parcial (cambio de algunos ejercicios)
+    motivo   TEXT,
+    creado   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Peso de partida por variante, antes de tener historial (lo que contaste al empezar o lo que estima Gemini)
+CREATE TABLE IF NOT EXISTS pesos_iniciales (
+    variante  TEXT PRIMARY KEY,
+    kg        REAL,
+    nota      TEXT
+);
+
+-- Cada semana: el plan con los objetivos, la pestaña del Sheet y los consejos de Gemini
+CREATE TABLE IF NOT EXISTS entreno_semana (
+    semana         TEXT PRIMARY KEY,  -- martes
+    plan           TEXT NOT NULL,     -- JSON: días con ejercicios, variante elegida y objetivos
+    pestana        TEXT,
+    recuperacion   TEXT,              -- verde, ambar, rojo o sin_datos
+    consejos       TEXT,
+    creado         TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Cada serie que apuntas en el Sheet (clave: id oculto de la fila)
+CREATE TABLE IF NOT EXISTS series (
+    id          TEXT PRIMARY KEY,   -- semana|día|ejercicio|serie
+    semana      TEXT NOT NULL,
+    dia         TEXT NOT NULL,      -- P1, T1, P2, T2
+    ejercicio   TEXT NOT NULL,
+    variante    TEXT NOT NULL,
+    serie       INTEGER NOT NULL,
+    kg          REAL,
+    reps        INTEGER,
+    rir         REAL,
+    notas       TEXT,
+    leido       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS series_variante ON series (variante, semana);
+
 -- Valores sueltos del sistema (p. ej. el último mensaje leído por el bot)
 CREATE TABLE IF NOT EXISTS estado (
     clave  TEXT PRIMARY KEY,

@@ -1,0 +1,600 @@
+{
+ "nombre": "Torso / Pierna 4 días (nota 04)",
+ "dias": [
+  {
+   "id": "P1",
+   "dia": "martes",
+   "nombre": "Pierna 1 (cadera)",
+   "ejercicios": [
+    {
+     "id": "rdl",
+     "variantes": [
+      "Peso muerto rumano con barra",
+      "Peso muerto rumano con mancuernas",
+      "Peso muerto rumano en multipower"
+     ],
+     "series": 3,
+     "reps": [
+      6,
+      10
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "isquios",
+      "gluteo",
+      "espalda"
+     ],
+     "rodilla_max": 30,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "sentadilla_cajon",
+     "variantes": [
+      "Sentadilla en multipower a cajón (rodilla ≤ 90°)",
+      "Prensa con tope a 90°",
+      "Hack con tope a 90°"
+     ],
+     "series": 3,
+     "reps": [
+      8,
+      12
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "cuadriceps",
+      "gluteo"
+     ],
+     "rodilla_max": 90,
+     "sobre_cabeza": false,
+     "nota": "Cajón a la altura que deja la rodilla a 90°"
+    },
+    {
+     "id": "hip_thrust",
+     "variantes": [
+      "Hip thrust con barra",
+      "Máquina de glúteo",
+      "Puente de glúteo con barra"
+     ],
+     "series": 3,
+     "reps": [
+      8,
+      12
+     ],
+     "rir": 2,
+     "incremento": 5,
+     "musculos": [
+      "gluteo",
+      "isquios"
+     ],
+     "rodilla_max": 90,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "curl_femoral",
+     "variantes": [
+      "Curl femoral sentado (0-90°)",
+      "Curl femoral tumbado (0-90°)"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      15
+     ],
+     "rir": 1,
+     "incremento": 2.5,
+     "musculos": [
+      "isquios"
+     ],
+     "rodilla_max": 90,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "gemelos_pie",
+     "variantes": [
+      "Gemelos de pie en máquina",
+      "Gemelos en prensa"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      15
+     ],
+     "rir": 1,
+     "incremento": 5,
+     "musculos": [
+      "gemelo"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "pallof",
+     "variantes": [
+      "Pallof press en polea",
+      "Plancha"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      12
+     ],
+     "rir": 2,
+     "incremento": 1,
+     "musculos": [
+      "core"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": "Repeticiones por lado (plancha: segundos ÷ 3)"
+    }
+   ]
+  },
+  {
+   "id": "T1",
+   "dia": "jueves",
+   "nombre": "Torso 1 (empuje horizontal)",
+   "ejercicios": [
+    {
+     "id": "press_inclinado",
+     "variantes": [
+      "Press inclinado 30° con mancuernas, agarre neutro",
+      "Press convergente en máquina",
+      "Press inclinado en multipower"
+     ],
+     "series": 3,
+     "reps": [
+      6,
+      10
+     ],
+     "rir": 2,
+     "incremento": 2,
+     "musculos": [
+      "pecho",
+      "hombro",
+      "triceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": "Kg por mancuerna"
+    },
+    {
+     "id": "remo_apoyado",
+     "variantes": [
+      "Remo con pecho apoyado en máquina",
+      "Remo con mancuernas en banco inclinado",
+      "Remo en polea sentado"
+     ],
+     "series": 3,
+     "reps": [
+      8,
+      12
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "espalda",
+      "biceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "jalon_neutro",
+     "variantes": [
+      "Jalón agarre neutro",
+      "Dominadas asistidas",
+      "Jalón unilateral"
+     ],
+     "series": 3,
+     "reps": [
+      8,
+      12
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "espalda",
+      "biceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "aperturas",
+     "variantes": [
+      "Aperturas en contractora",
+      "Cruce de poleas"
+     ],
+     "series": 3,
+     "reps": [
+      12,
+      15
+     ],
+     "rir": 1,
+     "incremento": 2.5,
+     "musculos": [
+      "pecho"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "elevaciones",
+     "variantes": [
+      "Elevaciones laterales en polea (plano escapular)",
+      "Elevaciones laterales con mancuernas",
+      "Elevaciones laterales en máquina"
+     ],
+     "series": 3,
+     "reps": [
+      12,
+      20
+     ],
+     "rir": 1,
+     "incremento": 1,
+     "musculos": [
+      "hombro"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": "Lento y controlado"
+    },
+    {
+     "id": "curl_scott",
+     "variantes": [
+      "Curl en banco Scott con barra Z",
+      "Curl con mancuernas",
+      "Curl en polea"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      15
+     ],
+     "rir": 1,
+     "incremento": 2.5,
+     "musculos": [
+      "biceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": "Superserie con el tríceps"
+    },
+    {
+     "id": "triceps_polea",
+     "variantes": [
+      "Extensión de tríceps en polea",
+      "Extensión de tríceps con barra Z",
+      "Extensión de tríceps con mancuerna"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      15
+     ],
+     "rir": 1,
+     "incremento": 2.5,
+     "musculos": [
+      "triceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": "Superserie con el curl"
+    }
+   ]
+  },
+  {
+   "id": "P2",
+   "dia": "viernes",
+   "nombre": "Pierna 2 (cuádriceps, rodilla ≤ 90°)",
+   "ejercicios": [
+    {
+     "id": "prensa",
+     "variantes": [
+      "Prensa con tope a 90°",
+      "Hack con tope a 90°",
+      "Sentadilla en multipower a cajón (rodilla ≤ 90°)"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      15
+     ],
+     "rir": 2,
+     "incremento": 5,
+     "musculos": [
+      "cuadriceps",
+      "gluteo"
+     ],
+     "rodilla_max": 90,
+     "sobre_cabeza": false,
+     "nota": "Kg en discos, sin contar la máquina"
+    },
+    {
+     "id": "extension_cuadriceps",
+     "variantes": [
+      "Extensión de cuádriceps (de 90° a 0°)",
+      "Extensión de cuádriceps unilateral (de 90° a 0°)"
+     ],
+     "series": 3,
+     "reps": [
+      12,
+      15
+     ],
+     "rir": 1,
+     "incremento": 2.5,
+     "musculos": [
+      "cuadriceps"
+     ],
+     "rodilla_max": 90,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "subida_cajon",
+     "variantes": [
+      "Subida a cajón bajo (rodilla ≤ 90°)",
+      "Zancada corta hacia atrás"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      12
+     ],
+     "rir": 2,
+     "incremento": 2,
+     "musculos": [
+      "cuadriceps",
+      "gluteo"
+     ],
+     "rodilla_max": 90,
+     "sobre_cabeza": false,
+     "nota": "Repeticiones por pierna; kg por mancuerna"
+    },
+    {
+     "id": "hiperextension",
+     "variantes": [
+      "Hiperextensión",
+      "Peso muerto rumano ligero con mancuernas"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      12
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "isquios",
+      "gluteo",
+      "espalda"
+     ],
+     "rodilla_max": 30,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "abductores",
+     "variantes": [
+      "Abductores en máquina"
+     ],
+     "series": 2,
+     "reps": [
+      12,
+      15
+     ],
+     "rir": 1,
+     "incremento": 5,
+     "musculos": [
+      "gluteo"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "aductores",
+     "variantes": [
+      "Aductores en máquina"
+     ],
+     "series": 2,
+     "reps": [
+      12,
+      15
+     ],
+     "rir": 1,
+     "incremento": 5,
+     "musculos": [
+      "aductores"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "gemelos_sentado",
+     "variantes": [
+      "Gemelos sentado"
+     ],
+     "series": 3,
+     "reps": [
+      12,
+      15
+     ],
+     "rir": 1,
+     "incremento": 5,
+     "musculos": [
+      "gemelo"
+     ],
+     "rodilla_max": 90,
+     "sobre_cabeza": false,
+     "nota": "Kg en discos, sin contar la máquina"
+    }
+   ]
+  },
+  {
+   "id": "T2",
+   "dia": "lunes",
+   "nombre": "Torso 2 (tirón y hombro)",
+   "ejercicios": [
+    {
+     "id": "press_pecho_maquina",
+     "variantes": [
+      "Press de pecho en máquina",
+      "Press plano con mancuernas, agarre neutro"
+     ],
+     "series": 3,
+     "reps": [
+      8,
+      12
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "pecho",
+      "triceps",
+      "hombro"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "dominadas",
+     "variantes": [
+      "Dominadas (asistidas si hace falta)",
+      "Jalón en máquina agarre prono"
+     ],
+     "series": 3,
+     "reps": [
+      6,
+      10
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "espalda",
+      "biceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": "Asistidas: kg de ayuda (bajar es progresar)"
+    },
+    {
+     "id": "press_hombro",
+     "variantes": [
+      "Press de hombro en máquina, agarre neutro",
+      "Press landmine",
+      "Press con mancuerna a una mano"
+     ],
+     "series": 3,
+     "reps": [
+      8,
+      12
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "hombro",
+      "triceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": true,
+     "nota": ""
+    },
+    {
+     "id": "remo_polea_baja",
+     "variantes": [
+      "Remo en polea baja",
+      "Remo en máquina"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      12
+     ],
+     "rir": 2,
+     "incremento": 2.5,
+     "musculos": [
+      "espalda",
+      "biceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "face_pull",
+     "variantes": [
+      "Face pull en polea",
+      "Pájaros en contractora"
+     ],
+     "series": 3,
+     "reps": [
+      12,
+      15
+     ],
+     "rir": 1,
+     "incremento": 2.5,
+     "musculos": [
+      "hombro",
+      "espalda"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": ""
+    },
+    {
+     "id": "curl_martillo",
+     "variantes": [
+      "Curl martillo con mancuernas",
+      "Curl martillo en polea con cuerda"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      15
+     ],
+     "rir": 1,
+     "incremento": 1,
+     "musculos": [
+      "biceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": "Superserie con el tríceps"
+    },
+    {
+     "id": "jalon_triceps",
+     "variantes": [
+      "Jalón de tríceps en polea",
+      "Extensión de tríceps con cuerda"
+     ],
+     "series": 3,
+     "reps": [
+      10,
+      15
+     ],
+     "rir": 1,
+     "incremento": 2.5,
+     "musculos": [
+      "triceps"
+     ],
+     "rodilla_max": 0,
+     "sobre_cabeza": false,
+     "nota": "Superserie con el martillo"
+    }
+   ]
+  }
+ ],
+ "calentamiento": "5-8 min de bici o remo suave (asma). Días de torso: rotación externa en polea 2×15 y face pull ligero 2×15 (manguito)."
+}

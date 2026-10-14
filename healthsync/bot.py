@@ -27,6 +27,7 @@ AYUDA = """Comandos de Health Sync:
 /calorias — calorías y macros de esta semana, y por qué
 /hoy — el menú de hoy
 /compra — la lista de la compra de la semana
+/entreno — la sesión de gimnasio de hoy (o la siguiente)
 /estado — última sincronización, último peso y la semana
 /ayuda — esta ayuda
 
@@ -151,8 +152,23 @@ def cmd_compra(con, _args: str) -> str:
     return menu.texto_compra(r)
 
 
+def cmd_entreno(con, _args: str) -> str:
+    """La sesión de hoy o, si hoy no toca, la siguiente de la semana (o de la que empieza mañana)."""
+    from . import calorias, entreno
+    hoy = datetime.now(TZ).date()
+    for semana in (calorias.martes_en_vigor(hoy), calorias.proximo_martes(hoy)):
+        f = con.execute("SELECT plan FROM entreno_semana WHERE semana = ?", (semana.isoformat(),)).fetchone()
+        if not f:
+            continue
+        p = json.loads(f[0])
+        for d in p["dias"]:
+            if d["fecha"] >= hoy.isoformat():
+                return entreno.texto_plan(p, solo_dia=d["id"]).strip()
+    return "Aún no hay plan de gimnasio: sale el lunes a las 10:00."
+
+
 COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado, "/calorias": cmd_calorias,
-            "/hoy": cmd_hoy, "/compra": cmd_compra}
+            "/hoy": cmd_hoy, "/compra": cmd_compra, "/entreno": cmd_entreno}
 
 
 # Lista que Telegram enseña al escribir «/» y en el botón Menú
@@ -162,6 +178,7 @@ MENU = [
     ("calorias", "Calorías y macros de esta semana"),
     ("hoy", "El menú de hoy"),
     ("compra", "Lista de la compra de la semana"),
+    ("entreno", "Sesión de gimnasio de hoy"),
     ("estado", "Última sincronización, peso y semana"),
     ("ayuda", "Comandos y cómo medirte"),
 ]

@@ -12,6 +12,7 @@ Además:
 | `medidas` | Lo que mandas por el bot (`/peso`, `/medidas`): peso, cintura, cuello y % de grasa (Marina). `gh_peso` y `gh_grasa` guardan el id del dato escrito en Google Health; si están vacíos, Google lo rechazó y solo existe la copia de la Pi. |
 | `plan_semana` | El objetivo de cada semana, de martes a lunes (`semana` = el martes; se calcula el lunes anterior): kcal, macros, metabolismo basal, gasto estimado y real, ritmo, fase (`deficit` o `descanso`) y el porqué. Lo escribe `healthsync.calorias --guardar`. |
 | `menu_semana` | El menú de cada semana tal como lo devolvió Gemini (JSON), lo que encontró buscando productos, los totales por día que calculó la Pi y el origen (`ia`, `ia_corregido` o `repetido`). Ver `docs/menu.md`. |
+| `rutina_bloque`, `pesos_iniciales`, `entreno_semana`, `series` | Gimnasio: rutina de cada bloque, pesos de partida, plan semanal con objetivos y cada serie que apuntas en el Sheet. Ver `docs/entreno.md`. |
 | `estado` | Valores sueltos del programa, como el último mensaje leído por el bot (`bot_offset`). |
 | `descartes` | Registros de la API que no deben contar (ver abajo). |
 | `ejecuciones` | Cada sincronización con su estado (`ok`, `parcial`, `error`). |
