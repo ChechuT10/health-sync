@@ -136,7 +136,7 @@ python3 -m unittest      # desde la raíz del repositorio; solo usa la bibliotec
 ## Hoja de ruta
 
 - [x] **Fase 0. Validación:** acceso a la API, OAuth permanente, Raspberry sin pantalla, impresión en red, descarga de todos los tipos de dato
-- [ ] **Fase 1. Producto mínimo:** ~~SQLite, sincronización cada 4 h, avisos de fallo, bot de Telegram para el peso y las medidas, cálculo de calorías con límites~~ ✓; falta el menú validado e impreso
+- [ ] **Fase 1. Producto mínimo:** ~~SQLite, sincronización cada 4 h, avisos de fallo, bot de Telegram para el peso y las medidas, cálculo de calorías con límites, tabla de alimentos~~ ✓; falta el menú validado e impreso
 - [ ] **Fase 2. Entrenamiento:** rutina en Google Sheets, lectura de series y progresión según la recuperación
 - [ ] **Fase 3. Nutrición automática:** comidas escritas en Google Health y estimación por foto
 - [ ] **Fase 4. Robustez:** gráficas de tendencia, pausas de dieta y descargas automáticas

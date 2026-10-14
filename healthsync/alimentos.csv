@@ -1,0 +1,91 @@
+# Tabla de alimentos de Health Sync. Valores por 100 g de la parte comestible, en el estado indicado
+# (crudo = se pesa antes de cocinar). Fuente: BEDCA/USDA redondeado; en los envasados manda la etiqueta.
+# grupo: proteina, pescado, huevo, lacteo, cereal, tuberculo, legumbre, verdura, fruta, grasa, suplemento, otro
+# unidad_g: peso de una unidad o ración típica (vacío = se da en gramos). max_semana: veces por semana como mucho (vacío = sin límite)
+id,nombre,grupo,estado,kcal,proteina,grasa,hidratos,fibra,unidad_g,max_semana,notas
+pollo_pechuga,Pechuga de pollo,proteina,crudo,110,23,1.5,0,0,,,
+pollo_muslo,Contramuslo de pollo sin piel,proteina,crudo,120,19.5,4.5,0,0,,,
+pavo_pechuga,Pechuga de pavo,proteina,crudo,105,24,1,0,0,,,
+cerdo_lomo,Lomo de cerdo (cinta),proteina,crudo,150,21,7,0,0,,,
+cerdo_solomillo,Solomillo de cerdo,proteina,crudo,120,21,4,0,0,,,
+ternera_filete,Filete de ternera magro,proteina,crudo,125,21.5,4.5,0,0,,,
+ternera_picada,Carne picada de vacuno 5 % grasa,proteina,crudo,125,20,5,0,0,,,
+pavo_fiambre,Fiambre de pechuga de pavo (≥ 90 % carne),proteina,tal cual,100,19,1.5,2,0,,,
+jamon_serrano,Jamón serrano sin grasa visible,proteina,tal cual,200,31,8.5,0,0,,3,mucha sal
+huevo,Huevo,huevo,crudo,145,12.5,10,0.5,0,55,,unidad L sin cáscara
+clara,Claras de huevo pasteurizadas,huevo,crudo,48,11,0.2,0.7,0,,,
+merluza,Merluza,pescado,crudo,75,16.5,1,0,0,,2,te gusta poco
+bacalao,Bacalao fresco o desalado,pescado,crudo,75,17.5,0.5,0,0,,2,te gusta poco
+salmon,Salmón,pescado,crudo,200,20,13,0,0,,1,te gusta poco
+atun_natural,Atún al natural (escurrido),pescado,escurrido,110,25,1,0,0,52,4,lata de 52 g escurrida
+atun_aceite,Atún en aceite de oliva (escurrido),pescado,escurrido,190,26,9.5,0,0,52,2,
+leche_semi,Leche semidesnatada,lacteo,tal cual,46,3.2,1.6,4.7,0,250,,
+leche_desnatada,Leche desnatada,lacteo,tal cual,35,3.4,0.2,4.9,0,250,,
+yogur_desnatado,Yogur natural desnatado,lacteo,tal cual,40,4.2,0.2,5.4,0,125,,
+yogur_griego,Yogur griego natural,lacteo,tal cual,120,3.4,10,3.9,0,125,,
+yogur_proteina,Yogur alto en proteínas natural,lacteo,tal cual,55,10,0.2,3.9,0,120,,
+skyr,Skyr natural,lacteo,tal cual,63,11,0.2,4,0,150,,
+queso_batido,Queso fresco batido 0 %,lacteo,tal cual,46,8,0.2,3.5,0,,,
+queso_burgos_0,Queso fresco de Burgos 0 %,lacteo,tal cual,70,12,0.4,4.5,0,,,
+requeson,Requesón,lacteo,tal cual,95,11,4,3.5,0,,,
+mozzarella,Mozzarella fresca,lacteo,tal cual,250,18,19,1.5,0,,,
+queso_curado,Queso curado,lacteo,tal cual,400,26,33,0.5,0,,3,ración pequeña
+proteina_polvo,Proteína en polvo (whey),suplemento,tal cual,380,75,6,7,0,30,,ajustar a tu etiqueta
+creatina,Creatina monohidrato,suplemento,tal cual,0,0,0,0,0,5,,3-5 g al día; no suma calorías
+cafe,Café solo,otro,tal cual,2,0.1,0,0.3,0,,,el café con leche del desayuno: café + leche
+arroz_blanco,Arroz blanco,cereal,crudo,355,7,0.6,78,1.4,,,
+arroz_integral,Arroz integral,cereal,crudo,355,7.5,2.7,72,3.5,,,
+pasta,Pasta,cereal,crudo,355,12.5,1.5,71,3,,,
+pasta_integral,Pasta integral,cereal,crudo,340,13.5,2.5,63,8,,,
+cuscus,Cuscús,cereal,crudo,360,12.5,1,72,3.5,,,
+quinoa,Quinoa,cereal,crudo,365,14,6,60,7,,,
+avena,Copos de avena,cereal,tal cual,375,13.5,7,59,10,,,
+pan_integral,Pan integral (barra),cereal,tal cual,245,10,3.5,41,7,,,
+pan_blanco,Pan blanco (barra),cereal,tal cual,265,9,1.5,54,3,,,
+pan_molde_integral,Pan de molde integral,cereal,tal cual,250,10.5,4,41,7,30,,rebanada
+tortitas_arroz,Tortitas de arroz,cereal,tal cual,385,8,2.8,81,3,8,,unidad
+wrap_integral,Tortilla de trigo integral (wrap),cereal,tal cual,300,9,7,48,6,40,,unidad
+patata,Patata,tuberculo,crudo,80,2,0.1,17,2,,,
+boniato,Boniato,tuberculo,crudo,86,1.6,0.1,18,3,,,
+garbanzos,Garbanzos cocidos (bote),legumbre,escurrido,120,7,2.5,15,5,,,
+guisantes,Guisantes congelados,legumbre,crudo,80,5.5,0.4,11,5,,,
+hummus,Hummus,legumbre,tal cual,290,7,24,10,6,,,
+brocoli,Brócoli,verdura,crudo,34,3,0.4,4,2.6,,,
+judias_verdes,Judías verdes,verdura,crudo,31,1.9,0.2,4.3,2.7,,,
+calabacin,Calabacín,verdura,crudo,17,1.2,0.3,2.2,1,,,
+pimiento_rojo,Pimiento rojo,verdura,crudo,30,1,0.3,5,2,,,
+pimiento_verde,Pimiento verde,verdura,crudo,20,0.9,0.2,3,1.7,,,
+cebolla,Cebolla,verdura,crudo,37,1.2,0.1,7.5,1.7,,,
+tomate,Tomate,verdura,crudo,20,0.9,0.2,3.5,1.2,,,
+lechuga,Lechuga o mezcla de ensalada,verdura,crudo,17,1.4,0.2,2,1.3,,,
+espinacas,Espinacas,verdura,crudo,25,2.9,0.4,1.4,2.2,,,
+zanahoria,Zanahoria,verdura,crudo,40,0.9,0.2,8,2.8,,,
+champinon,Champiñón,verdura,crudo,22,3,0.3,0.5,1,,,
+berenjena,Berenjena,verdura,crudo,25,1,0.2,4,2.5,,,
+esparragos,Espárragos verdes,verdura,crudo,22,2.2,0.1,2,2,,,
+pepino,Pepino,verdura,crudo,14,0.7,0.1,2.5,0.6,,,
+tomate_triturado,Tomate triturado (lata),verdura,tal cual,30,1.3,0.2,5,1.3,,,
+verduras_salteado,Salteado de verduras congelado,verdura,crudo,40,2,0.4,5.5,3,,,
+gazpacho,Gazpacho (brik),verdura,tal cual,50,0.8,3.5,3.5,0.8,250,,vaso
+platano,Plátano,fruta,pelado,95,1.2,0.3,21,2.5,120,,unidad pelada
+manzana,Manzana,fruta,tal cual,55,0.3,0.2,12,2.4,180,,unidad
+naranja,Naranja,fruta,pelado,45,0.9,0.2,9,2,180,,unidad pelada
+mandarina,Mandarina,fruta,pelado,45,0.8,0.3,9.5,1.8,70,,unidad pelada
+pera,Pera,fruta,tal cual,55,0.4,0.1,12,3,170,,unidad
+kiwi,Kiwi,fruta,pelado,60,1.1,0.5,11,3,80,,unidad pelada
+fresas,Fresas,fruta,tal cual,35,0.7,0.3,6,2,,,
+frutos_rojos,Frutos rojos congelados,fruta,tal cual,45,1,0.3,8,4,,,
+uvas,Uvas,fruta,tal cual,70,0.7,0.2,16,1,,,
+pina,Piña,fruta,pelado,50,0.5,0.1,11.5,1.4,,,
+melon,Melón,fruta,pelado,35,0.8,0.2,7.5,0.9,,,
+datiles,Dátiles,fruta,tal cual,280,2.5,0.4,66,7,8,,unidad sin hueso; antes de entrenar
+aceite_oliva,Aceite de oliva virgen extra,grasa,tal cual,900,0,100,0,0,10,,cucharada
+aguacate,Aguacate,grasa,pelado,160,2,14.7,1.8,6.7,,,
+almendras,Almendras,grasa,tal cual,600,21,52,6,12,,,
+nueces,Nueces,grasa,tal cual,655,15,65,4,6.5,,,
+cacahuetes,Cacahuetes tostados,grasa,tal cual,590,26,49,9,8,,,
+crema_cacahuete,Crema de cacahuete 100 %,grasa,tal cual,600,26,49,10,7,15,,cucharada
+chia,Semillas de chía,grasa,tal cual,490,17,31,8,34,,,
+aceitunas,Aceitunas,grasa,escurrido,140,1,14,0.5,3,,,
+tomate_frito,Tomate frito,otro,tal cual,80,1.5,3.5,10,1.5,,,
+miel,Miel,otro,tal cual,320,0.3,0,80,0,10,,cucharadita

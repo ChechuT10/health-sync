@@ -15,6 +15,8 @@ Además:
 | `descartes` | Registros de la API que no deben contar (ver abajo). |
 | `ejecuciones` | Cada sincronización con su estado (`ok`, `parcial`, `error`). |
 
+**Tabla de alimentos:** no está en la base de datos sino en `healthsync/alimentos.csv` (valores por 100 g, BEDCA/USDA o la etiqueta), para poder revisarla y editarla a mano. `healthsync.alimentos` la carga; con ella el código recalcula los macros de cada menú que proponga la IA. `tests/test_alimentos.py` comprueba que las kcal de cada alimento cuadran con sus macros.
+
 **`pesos`** une `weight` y `body-fat` de Google Health por hora de la muestra, y añade las medidas del bot que aún no están en Google Health (sin duplicar las que sí).
 
 **Fecha de inicio:** las tablas limpias solo usan datos desde `FECHA_INICIO` (`healthsync/config.py`, por defecto 2026-09-01; se cambia con la variable `HEALTHSYNC_INICIO`). Lo anterior que devuelva la API se guarda en `raw`, pero no se usa.
