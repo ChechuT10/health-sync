@@ -1,0 +1,9 @@
+[Unit]
+Description=Health Sync: comidas del día en Google Health a las 23:30
+
+[Timer]
+OnCalendar=*-*-* 23:30
+Persistent=false
+
+[Install]
+WantedBy=timers.target

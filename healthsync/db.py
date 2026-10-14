@@ -172,6 +172,26 @@ CREATE TABLE IF NOT EXISTS series (
 );
 CREATE INDEX IF NOT EXISTS series_variante ON series (variante, semana);
 
+-- Lo que se come cada día (healthsync.comidas): las del menú (se escriben a las 23:30), las de fuera
+-- (foto o descripción al bot, estimadas por Gemini) y las saltadas. Una fila por comida.
+CREATE TABLE IF NOT EXISTS comidas (
+    id          INTEGER PRIMARY KEY,
+    fecha       TEXT NOT NULL,      -- día civil (Madrid)
+    comida      TEXT NOT NULL,      -- desayuno, media_mañana, comida, merienda, cena, fijos o extra
+    origen      TEXT NOT NULL,      -- plan, fuera o saltada
+    nombre      TEXT NOT NULL,
+    kcal        REAL,
+    proteina    REAL,
+    grasa       REAL,
+    hidratos    REAL,
+    kcal_min    REAL,               -- comidas de fuera: rango de la estimación
+    kcal_max    REAL,
+    hora        TEXT,               -- HH:MM
+    gh_name     TEXT,               -- id del dato en Google Health (vacío = no escrito)
+    creado      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS comidas_fecha ON comidas (fecha);
+
 -- Valores sueltos del sistema (p. ej. el último mensaje leído por el bot)
 CREATE TABLE IF NOT EXISTS estado (
     clave  TEXT PRIMARY KEY,

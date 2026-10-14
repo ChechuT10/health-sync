@@ -1,0 +1,13 @@
+[Unit]
+Description=Health Sync: escribe las comidas del día en Google Health (y el resumen a fin de mes)
+OnFailure=healthsync-aviso@%n.service
+
+[Service]
+Type=oneshot
+User=healthsync
+Group=healthsync
+WorkingDirectory=/opt/healthsync/app
+ExecStart=/opt/healthsync/venv/bin/python -m healthsync.comidas --escribir
+# Límites: la Pi tiene 1 GB compartido con otros proyectos (ver docs/recursos.md)
+MemoryMax=100M
+Nice=10

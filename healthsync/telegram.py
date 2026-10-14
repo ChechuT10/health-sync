@@ -34,9 +34,21 @@ def _api(metodo: str, **params) -> dict:
     return res["result"]
 
 
-def enviar(texto: str) -> None:
-    """Manda un mensaje a tu chat (texto plano; Telegram corta a 4096 caracteres)."""
-    _api("sendMessage", chat_id=CHAT_FILE.read_text().strip(), text=texto[:4000])
+def enviar(texto: str, botones: list[str] | None = None) -> None:
+    """Manda un mensaje a tu chat (texto plano; Telegram corta a 4096 caracteres). Con botones, enseña
+    un teclado de respuesta rápida (cada botón manda su texto); sin ellos, quita el que hubiera."""
+    teclado = ({"keyboard": [[{"text": b} for b in botones[i:i + 3]] for i in range(0, len(botones), 3)],
+                "one_time_keyboard": True, "resize_keyboard": True} if botones else {"remove_keyboard": True})
+    _api("sendMessage", chat_id=CHAT_FILE.read_text().strip(), text=texto[:4000],
+         reply_markup=json.dumps(teclado, ensure_ascii=False))
+
+
+def descargar_foto(file_id: str) -> bytes:
+    """Descarga una foto que te han mandado (la versión más grande que pase el bot)."""
+    ruta = _api("getFile", file_id=file_id)["file_path"]
+    token = TOKEN_FILE.read_text().strip()
+    with urllib.request.urlopen(f"https://api.telegram.org/file/bot{token}/{ruta}", timeout=60) as r:
+        return r.read()
 
 
 

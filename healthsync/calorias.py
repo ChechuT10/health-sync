@@ -42,6 +42,7 @@ DIAS_TENDENCIA = 28         # pesadas que entran en la tendencia
 PESADAS_MIN = 3             # sin esto no se ajusta nada
 DIAS_PESADAS_MIN = 14       # las pesadas tienen que cubrir al menos este periodo
 KCAL_POR_KG = 7700
+DIAS_COMIDAS_MIN = 10       # días con comidas registradas para usarlas como «lo comido»
 SEMANAS_AGUA = 2            # al empezar, el peso baja por agua: ni se ajusta ni cuenta en la tendencia
 
 
@@ -183,13 +184,21 @@ def proponer(con: sqlite3.Connection, hoy: date | None = None) -> Propuesta | No
     descanso = (numero - 1) % CICLO_SEMANAS >= CICLO_SEMANAS - DESCANSO_SEMANAS
     motivo: list[str] = []
 
-    # Gasto real: lo que se ha comido (los planes, a falta del registro de comidas) + lo perdido
+    # Gasto real: lo comido + lo perdido. «Lo comido» sale del registro de comidas (menú, comidas de fuera
+    # y saltadas) si hay bastantes días; si no, se supone que se cumplieron los planes
     gasto_real = None
     ultimas = [h for h in historia if date.fromisoformat(h["semana"]) >= semana - timedelta(weeks=4)]
     if tend and len(ultimas) >= 3:
-        comido = sum(h["kcal"] for h in ultimas) / len(ultimas)
+        from .comidas import kcal_por_dia
+        registrado = kcal_por_dia(con, hoy - timedelta(days=DIAS_TENDENCIA), hoy - timedelta(days=1))
+        if len(registrado) >= DIAS_COMIDAS_MIN:
+            comido = sum(registrado.values()) / len(registrado)
+            fuente = f"registrado, {len(registrado)} días"
+        else:
+            comido = sum(h["kcal"] for h in ultimas) / len(ultimas)
+            fuente = "según los planes"
         gasto_real = comido - tend[1] * KCAL_POR_KG / 7
-        motivo.append(f"Gasto real ≈ {kc(gasto_real)} kcal: comes ~{kc(comido)} y "
+        motivo.append(f"Gasto real ≈ {kc(gasto_real)} kcal: comes ~{kc(comido)} ({fuente}) y "
                       f"{'pierdes' if tend[1] < 0 else 'ganas'} {es(abs(tend[1]), 2)} kg/semana.")
     gasto = gasto_real or gasto_est
 

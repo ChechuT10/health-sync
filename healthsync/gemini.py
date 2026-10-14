@@ -21,12 +21,17 @@ class GeminiError(Exception):
 
 
 def generar(modelo: str, prompt: str, *, buscar: bool = False, esquema: dict | None = None,
-            razonamiento: str | None = None, max_salida: int = 16384, timeout: int = 180) -> str:
+            razonamiento: str | None = None, max_salida: int = 16384, timeout: int = 180,
+            imagen: bytes | None = None, tipo_imagen: str = "image/jpeg") -> str:
     """Texto de la respuesta. buscar=True deja a Gemini buscar en Google; esquema = JSON Schema
     de la respuesta (con esquema no busca: por eso son dos llamadas distintas). razonamiento: low,
     medium o high (cuánto piensa antes de responder; más tarda más). max_salida: tope de tokens generados
     (razonamiento incluido), que es lo que más cuesta."""
-    cuerpo: dict = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
+    partes_pet: list[dict] = [{"text": prompt}]
+    if imagen is not None:                               # foto de una comida (bot)
+        import base64
+        partes_pet.insert(0, {"inlineData": {"mimeType": tipo_imagen, "data": base64.b64encode(imagen).decode()}})
+    cuerpo: dict = {"contents": [{"role": "user", "parts": partes_pet}]}
     if buscar:
         cuerpo["tools"] = [{"google_search": {}}]
     conf: dict = {"maxOutputTokens": max_salida}     # el razonamiento también gasta de aquí

@@ -28,6 +28,8 @@ AYUDA = """Comandos de Health Sync:
 /hoy — el menú de hoy
 /compra — la lista de la compra de la semana
 /entreno — la sesión de gimnasio de hoy (o la siguiente)
+/fuera pizza mediana y una caña — comida de fuera de casa (o mándame una foto)
+/saltar merienda — una comida del menú que no hiciste hoy
 /estado — última sincronización, último peso y la semana
 /ayuda — esta ayuda
 
@@ -167,8 +169,69 @@ def cmd_entreno(con, _args: str) -> str:
     return "Aún no hay plan de gimnasio: sale el lunes a las 10:00."
 
 
+# ---- Comidas de fuera y saltadas ----
+OPCIONES_COMIDA = ["Desayuno", "Media mañana", "Comida", "Merienda", "Cena", "Extra", "Cancelar"]
+estimacion: dict | None = None          # comida de fuera esperando a que digas qué sustituye
+
+
+def _comida(texto: str) -> str:
+    return texto.strip().lower().replace(" ", "_")
+
+
+def preguntar_sustituye(est: dict):
+    global estimacion, pendiente
+    estimacion, pendiente = est, "/sustituye"
+    return (comidas_txt().texto_estimacion(est) + "\n\n¿Qué comida sustituye? («Extra» si fue algo de más)",
+            OPCIONES_COMIDA)
+
+
+def comidas_txt():
+    from . import comidas
+    return comidas
+
+
+def cmd_fuera(con, args: str):
+    try:
+        est = comidas_txt().estimar(descripcion=args)
+    except Exception as e:  # noqa: BLE001
+        return f"❌ No pude estimarla ({type(e).__name__}). Prueba a describirla con más detalle o manda una foto."
+    return preguntar_sustituye(est)
+
+
+def atender_foto(con, foto: bytes, pie: str = ""):
+    try:
+        est = comidas_txt().estimar(descripcion=pie, foto=foto)
+    except Exception as e:  # noqa: BLE001
+        return f"❌ No pude estimar la foto ({type(e).__name__}). Prueba otra vez o usa /fuera con una descripción."
+    return preguntar_sustituye(est)
+
+
+def cmd_sustituye(con, args: str):
+    global estimacion
+    comidas = comidas_txt()
+    c = _comida(args)
+    if c == "cancelar" or estimacion is None:
+        estimacion = None
+        return "Vale, no la apunto."
+    if c not in comidas.SUSTITUIBLES + ["extra"]:
+        raise medidas.MedidaError("Elige una de las opciones de los botones")
+    ahora = datetime.now(TZ)
+    _, error = comidas.guardar_fuera(con, ahora.date(), c, estimacion, ahora.strftime("%H:%M"))
+    nombre, kcal = estimacion["descripcion"], estimacion["kcal"]
+    estimacion = None
+    destino = "como algo extra" if c == "extra" else f"en lugar de la {c.replace('_', ' ')} del menú"
+    return (f"✅ Apuntado {destino}: {nombre} (~{comidas.calorias.kc(kcal)} kcal)."
+            + (f"\n⚠️ Google Health no la aceptó: {error}. Se reintenta esta noche." if error
+               else "\nGuardado también en Google Health."))
+
+
+def cmd_saltar(con, args: str) -> str:
+    return comidas_txt().saltar(con, datetime.now(TZ).date(), _comida(args))
+
+
 COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado, "/calorias": cmd_calorias,
-            "/hoy": cmd_hoy, "/compra": cmd_compra, "/entreno": cmd_entreno}
+            "/hoy": cmd_hoy, "/compra": cmd_compra, "/entreno": cmd_entreno, "/fuera": cmd_fuera,
+            "/saltar": cmd_saltar, "/sustituye": cmd_sustituye}
 
 
 # Lista que Telegram enseña al escribir «/» y en el botón Menú
@@ -179,6 +242,8 @@ MENU = [
     ("hoy", "El menú de hoy"),
     ("compra", "Lista de la compra de la semana"),
     ("entreno", "Sesión de gimnasio de hoy"),
+    ("fuera", "Comida de fuera (o manda una foto)"),
+    ("saltar", "Una comida del menú que no hiciste"),
     ("estado", "Última sincronización, peso y semana"),
     ("ayuda", "Comandos y cómo medirte"),
 ]
@@ -186,11 +251,14 @@ MENU = [
 PREGUNTAS = {
     "/peso": "⚖️ ¿Cuánto pesas? Escribe solo el número, p. ej. 99,4",
     "/medidas": "📏 Escribe cintura y cuello en cm, p. ej. 102 41 (puedes añadir «peso 99,4»)",
+    "/fuera": "🍽️ ¿Qué comiste? Descríbelo (p. ej. «hamburguesa con patatas y una cerveza») o mándame una foto",
+    "/saltar": ("¿Qué comida del menú no has hecho hoy?", OPCIONES_COMIDA[:5]),
 }
 pendiente: str | None = None
 
 
-def atender(con: sqlite3.Connection, texto: str) -> str:
+def atender(con: sqlite3.Connection, texto: str):
+    """Respuesta a un mensaje: texto, o (texto, botones) si hay que elegir una opción."""
     global pendiente
     texto = texto.strip()
     if texto.startswith("/"):
@@ -207,11 +275,12 @@ def atender(con: sqlite3.Connection, texto: str) -> str:
         pendiente = orden
         return PREGUNTAS[orden]
     if orden in COMANDOS:
+        anterior, pendiente = pendiente, None
         try:
-            respuesta = COMANDOS[orden](con, args)
+            respuesta = COMANDOS[orden](con, args)         # puede dejar otra pregunta pendiente
         except medidas.MedidaError as e:
+            pendiente = anterior
             return f"❌ {e}" + ("\nPrueba otra vez o toca otro comando." if pendiente else "")
-        pendiente = None
         return respuesta
     return "No te entiendo. Toca el botón Menú o escribe /ayuda."
 
@@ -238,14 +307,22 @@ def bucle() -> None:
         for u in updates:
             offset = u["update_id"] + 1
             msg = u.get("message") or {}
-            if (msg.get("chat") or {}).get("id") != mi_chat or not msg.get("text"):
-                continue                     # solo tu chat y solo texto
+            if (msg.get("chat") or {}).get("id") != mi_chat or not (msg.get("text") or msg.get("photo")):
+                continue                     # solo tu chat, y solo texto o fotos
             try:
-                respuesta = atender(con, msg["text"])
+                if msg.get("photo"):
+                    telegram.enviar("📸 Recibida, la estoy mirando…")
+                    foto = telegram.descargar_foto(msg["photo"][-1]["file_id"])
+                    respuesta = atender_foto(con, foto, msg.get("caption", ""))
+                else:
+                    respuesta = atender(con, msg["text"])
             except Exception as e:  # noqa: BLE001
                 respuesta = f"❌ Error interno: {type(e).__name__}: {e}"
                 print(respuesta, file=sys.stderr, flush=True)
-            telegram.enviar(respuesta)
+            if isinstance(respuesta, tuple):
+                telegram.enviar(*respuesta)
+            else:
+                telegram.enviar(respuesta)
         if updates:
             con.execute("INSERT INTO estado VALUES ('bot_offset', ?) "
                         "ON CONFLICT (clave) DO UPDATE SET valor = excluded.valor", (str(offset),))

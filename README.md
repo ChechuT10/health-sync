@@ -123,6 +123,8 @@ Solo responde a tu chat. Cada medida se guarda en la Raspberry y se escribe en G
 | `/hoy` | El menú de hoy |
 | `/compra` | La lista de la compra de la semana |
 | `/entreno` | La sesión de gimnasio de hoy (o la siguiente) |
+| `/fuera` o una foto | Comida de fuera de casa: Gemini estima un rango y eliges qué comida sustituye |
+| `/saltar` | Una comida del menú que no hiciste (no se apunta esa noche) |
 | `/estado` | Última sincronización, último peso y resumen de 7 días |
 
 Los comandos salen en el botón **Menú** de Telegram y al escribir `/` (el bot los registra con `setMyCommands` al arrancar). Sin números, `/peso` y `/medidas` te los preguntan.
@@ -142,7 +144,7 @@ python3 -m unittest      # desde la raíz del repositorio; solo usa la bibliotec
 - [x] **Fase 0. Validación:** acceso a la API, OAuth permanente, Raspberry sin pantalla, impresión en red, descarga de todos los tipos de dato
 - [ ] **Fase 1. Producto mínimo:** ~~SQLite, sincronización cada 4 h, avisos de fallo, bot de Telegram para el peso y las medidas, cálculo de calorías con límites, tabla de alimentos, menú con Gemini revisado e impreso~~ ✓ ([docs/menu.md](docs/menu.md))
 - [x] **Fase 2. Entrenamiento:** ~~rutina por bloques, Google Sheet, lectura de series, progresión según la recuperación y cambios de ejercicios con Gemini~~ ✓ ([docs/entreno.md](docs/entreno.md))
-- [ ] **Fase 3. Nutrición automática:** comidas escritas en Google Health y estimación por foto
+- [x] **Fase 3. Nutrición:** ~~comidas en Google Health cada noche, comidas de fuera con foto y rango, saltadas, resumen mensual y gasto real con lo comido~~ ✓ ([docs/comidas.md](docs/comidas.md))
 - [ ] **Fase 4. Robustez:** gráficas de tendencia, pausas de dieta y descargas automáticas
 
 ## Aviso
