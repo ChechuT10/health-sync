@@ -4,7 +4,7 @@
 
 Health Sync es un pipeline de datos personales que corre en una Raspberry Pi. Descarga lo que registran el reloj y el móvil en **Google Health**, calcula con reglas deterministas cuánto comer y cuánto entrenar, y cada semana genera un menú y una rutina. La IA (API de Gemini) solo redacta; los números los pone el código.
 
-> 🚧 **En construcción.** Fase 0 completada. Fase 1 lista: sincronización, bot de Telegram, calculadora de calorías y menú semanal con Gemini (revisado por la Pi e impreso los lunes). Ver la [hoja de ruta](#hoja-de-ruta).
+> 🚧 **En construcción.** Fases 0 a 3 listas: sincronización, bot de Telegram, calorías, menú semanal con Gemini impreso los lunes, gimnasio en Google Sheets y comidas en Google Health. Falta la fase 4 (robustez). Ver la [hoja de ruta](#hoja-de-ruta).
 >
 > 🌐 Página del proyecto: **[chechut10.github.io/health-sync](https://chechut10.github.io/health-sync/)**
 
