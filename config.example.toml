@@ -19,7 +19,7 @@ grasa_objetivo_pct = 16    # % de grasa al que se quiere llegar
 # Menú semanal (lo monta Gemini). Todo es opcional: sin esta sección se usan los valores de
 # PREFERENCIAS en healthsync/menu.py. Gemini recibe esto y las calorías, nunca tu peso ni tu % de grasa.
 [menu]
-modelo = "gemini-3.8-flash"      # versión fija, no «latest» (que podría pasar a un modelo más caro); Pro tarda demasiado
+modelo = "gemini-flash-latest"   # el último Flash; Pro tarda demasiado
 razonamiento = "high"            # cuánto piensa al montar el menú: low, medium o high
 supermercados = ["Mercadona", "Lidl", "Dia", "Ahorramás"]
 dias_entreno = ["lunes", "martes", "jueves", "viernes"]

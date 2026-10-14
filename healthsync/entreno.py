@@ -38,9 +38,9 @@ ORDEN_DIAS = ["martes", "miércoles", "jueves", "viernes", "sábado", "domingo",
 SEMANAS_BLOQUE = 12
 DESCARGA_CADA = 6            # cada 6.ª semana del bloque: mitad de series, mismo peso, RIR 3-4
 ESTANCADOS_PARA_CAMBIAR = 3
-# Versión fija (no un alias «latest»): un cambio de Google no nos pasa a un modelo más caro sin decidirlo.
-# Probado el 14/10/2026: 3.8 Flash cumple las reglas a la primera; 3.1 Pro tarda el doble y necesitó 3 intentos.
-MODELO = "gemini-3.8-flash"
+# Siempre el último Flash. Probado el 14/10/2026: 3.8 Flash cumple las reglas a la primera; 3.1 Pro tarda el
+# doble y necesitó 3 intentos.
+MODELO = "gemini-flash-latest"
 
 # ---- Reglas de seguridad (nota 04): la Pi rechaza cualquier rutina que las incumpla ----
 RODILLA_MAX = 90

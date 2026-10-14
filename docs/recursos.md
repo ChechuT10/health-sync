@@ -16,7 +16,7 @@ Si un servicio pasa de su tope, systemd lo para y salta el aviso por Telegram en
 
 ## Gemini (coste)
 
-Modelos con **versión fija** (`gemini-3.8-flash`), no alias «latest»: si Google cambia lo que hay detrás de un alias (por ejemplo, a un modelo nuevo y más caro), no nos afecta sin decidirlo. Cada llamada escribe en el registro el modelo y los tokens (`[gemini] …`), y tiene un tope de tokens generados (razonamiento incluido), que es lo que más cuesta.
+Modelo: **`gemini-flash-latest`**, siempre el último Flash (el 14/10/2026, 3.8 Flash; los modelos nuevos más caros, como Gemini 4 Argon, son Pro). Cada llamada escribe en el registro el modelo y los tokens (`[gemini] …`), y tiene un tope de tokens generados (razonamiento incluido), que es lo que más cuesta.
 
 | Llamada | Cuándo | Medido (14/10/2026) | Tope |
 |---|---|---|---|

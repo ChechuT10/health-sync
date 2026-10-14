@@ -45,8 +45,8 @@ OBLIGATORIAS = ["desayuno", "comida", "merienda", "cena"]
 
 # Tus preferencias. Se pueden cambiar en config.toml, sección [menu] (mismos nombres)
 PREFERENCIAS = {
-    # Versión fija (no «latest»): así un cambio de Google no nos pasa a un modelo más caro sin decidirlo
-    "modelo": "gemini-3.8-flash",
+    # Alias: siempre el último Flash (los Pro, más caros y lentos, van aparte). El 14/10/2026 = 3.8 Flash
+    "modelo": "gemini-flash-latest",
     "razonamiento": "high",          # cuánto piensa Gemini al montar el menú (low, medium, high)
     "supermercados": ["Mercadona", "Lidl", "Dia", "Ahorramás"],
     "horario": {"desayuno": "8:00", "media_mañana": "11:00", "comida": "14:00", "merienda": "18:00",
