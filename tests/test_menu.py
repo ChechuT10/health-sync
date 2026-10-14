@@ -55,6 +55,12 @@ class Revision(unittest.TestCase):
         self.assertIn("cacao", errores)
         self.assertIn("Lentejas", errores)
 
+    def test_sin_coliflor_no_cuenta(self):
+        self.menu["platos"][0]["nombre"] = "Salteado de verduras sin coliflor"
+        self.assertFalse(any("que no come" in e for e in self.revisar(self.menu)[0]))
+        self.menu["platos"][0]["nombre"] = "Salteado con coliflor"
+        self.assertTrue(any("coliflor" in e for e in self.revisar(self.menu)[0]))
+
     def test_judias_verdes_si(self):
         self.assertFalse(any("que no come" in e for e in self.revisar(self.menu)[0]))
         self.assertTrue(any("Judías verdes" in a["nombre"] or "judías verdes" in a["nombre"].lower()

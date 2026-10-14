@@ -207,7 +207,8 @@ def revisar(menu: dict, objetivo: dict, fijos: dict, prefs: dict) -> tuple[list[
     """Errores (vacío = vale) y totales de cada día, fijos incluidos."""
     errores: list[str] = []
     ref = tabla_alimentos.tabla()
-    prohibido = re.compile(r"\b(" + "|".join(PROHIBIDO) + r")\b", re.IGNORECASE)
+    # «sin coliflor» no cuenta: solo si no va justo después de «sin»
+    prohibido = re.compile(r"(?<!\bsin )\b(" + "|".join(PROHIBIDO) + r")\b", re.IGNORECASE)
 
     alim = {a["id"]: a for a in menu.get("alimentos", [])}
     for a in alim.values():
