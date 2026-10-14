@@ -51,6 +51,7 @@ PROHIBIDO = [r"sentadilla (profunda|completa|libre)", r"b[uú]lgara", r"zancada(
 VOLUMEN = {"pecho": (6, 18), "espalda": (8, 20), "hombro": (6, 18), "cuadriceps": (6, 18),
            "isquios": (6, 18), "gluteo": (6, 20), "biceps": (4, 16), "triceps": (4, 16)}
 MAX_MINUTOS = 60
+MAX_EJERCICIOS = 6           # por día (petición del usuario, 14/10/2026)
 CALENTAMIENTO_MIN = 8        # bici o remo suave
 PREHAB_TORSO_MIN = 4         # rotación externa y face pull ligero, los días de torso
 
@@ -117,8 +118,8 @@ def validar_rutina(rutina: dict) -> list[str]:
     ids = set()
     for d in dias:
         ejercicios = d.get("ejercicios", [])
-        if not 4 <= len(ejercicios) <= 8:
-            errores.append(f"{d.get('id')}: {len(ejercicios)} ejercicios (entre 4 y 8).")
+        if not 4 <= len(ejercicios) <= MAX_EJERCICIOS:
+            errores.append(f"{d.get('id')}: {len(ejercicios)} ejercicios (entre 4 y {MAX_EJERCICIOS}).")
         if (m := minutos(d)) > MAX_MINUTOS:
             errores.append(f"{d.get('id')}: ~{m:.0f} min con calentamiento, más de {MAX_MINUTOS}. Quita series o "
                            "ejercicios, o junta dos en superserie.")
@@ -337,7 +338,7 @@ REGLAS QUE NO SE PUEDEN SALTAR (un programa las comprueba):
   {SERIES_SOBRE_CABEZA_MAX} series a la semana de press por encima de la cabeza ("sobre_cabeza": true).
 - Asma: nada de HIIT ni sprints.
 - Estructura: 4 días, Pierna 1 (martes, cadera), Torso 1 (jueves, empuje horizontal), Pierna 2 (viernes,
-  cuádriceps) y Torso 2 (lunes, tirón y hombro). 4-8 ejercicios por día, 2-5 series, como mucho ~60 min.
+  cuádriceps) y Torso 2 (lunes, tirón y hombro). 4-{MAX_EJERCICIOS} ejercicios por día (5-6 lo normal), 2-5 series.
 - Volumen semanal en series efectivas (el primer músculo de "musculos" cuenta 1, los demás 0,5): 10-14 para
   los grandes (pecho, espalda, hombro, cuadriceps, isquios, gluteo) y 4-10 para los pequeños (biceps, triceps,
   gemelo, core, aductores). Usa solo esos nombres de músculo. 3-4 series por ejercicio (5 solo excepcionalmente).
