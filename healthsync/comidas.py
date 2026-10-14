@@ -157,6 +157,8 @@ def estimar(descripcion: str = "", foto: bytes | None = None) -> dict:
     prompt = f"""Eres un dietista-nutricionista en España. Estima la energía y los macros de esta comida{' (foto)' if foto else ''}
 para una persona adulta. {('Pistas de quien la ha comido: ' + descripcion) if descripcion else ''}
 Ten en cuenta aceites, salsas y bebidas visibles o mencionadas, que es donde más se suele fallar.
+NO cuentes lo que ya se apunta aparte cada día: {menu.preferencias()["fijos_texto"]}. Si sale un café con leche,
+déjalo fuera de los números y dilo en "nota".
 Da un valor central y un rango realista (kcal_min-kcal_max); con foto, el error típico es del ±30-50 %.
 "descripcion": qué es, en pocas palabras. "nota": un consejo breve si hace falta (sin sermones)."""
     datos = json.loads(generar(MODELO, prompt, esquema=esquema_estimacion(), razonamiento="medium",
