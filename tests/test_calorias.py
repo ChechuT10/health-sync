@@ -30,10 +30,22 @@ class Calorias(unittest.TestCase):
                          (f"p/{d}", d.isoformat(), kg, grasa))
 
     def semana(self, n: int) -> c.Propuesta:
-        """Propuesta del lunes de la semana n (1 = primera) y la guarda."""
+        """Propuesta del lunes antes de la semana n (1 = primera) y la guarda."""
         pr = c.proponer(self.con, LUNES + timedelta(weeks=n - 1))
         c.guardar(self.con, pr)
         return pr
+
+    def test_semana_de_martes_a_lunes(self):
+        martes = LUNES + timedelta(days=1)
+        for d in range(7):                                # de martes 13 a lunes 19: el plan del 20
+            self.assertEqual(c.proximo_martes(LUNES - timedelta(days=d)), martes)
+        self.assertEqual(c.martes_en_vigor(LUNES), martes - timedelta(days=7))   # el lunes es el último día
+        self.assertEqual(c.martes_en_vigor(martes), martes)
+        self.pesar(LUNES - timedelta(days=1), 100, grasa=33)
+        pr = self.semana(1)
+        self.assertEqual(pr.semana, martes)
+        self.assertIn("martes 20/10 – lunes 26/10", c.texto(pr))
+        self.assertEqual(c.plan_guardado(self.con, martes), pr)
 
     def test_sin_peso_no_hay_propuesta(self):
         self.assertIsNone(c.proponer(self.con, LUNES))

@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS medidas (
 
 -- Objetivo de cada semana (lo calcula healthsync.calorias; la IA no lo toca)
 CREATE TABLE IF NOT EXISTS plan_semana (
-    semana             TEXT PRIMARY KEY,  -- lunes
+    semana             TEXT PRIMARY KEY,  -- martes en que empieza (de martes a lunes)
     numero             INTEGER NOT NULL,
     kcal               INTEGER NOT NULL,
     proteina_g         INTEGER NOT NULL,

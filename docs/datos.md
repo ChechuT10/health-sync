@@ -10,7 +10,7 @@ Además:
 | Tabla | Qué guarda |
 |---|---|
 | `medidas` | Lo que mandas por el bot (`/peso`, `/medidas`): peso, cintura, cuello y % de grasa (Marina). `gh_peso` y `gh_grasa` guardan el id del dato escrito en Google Health; si están vacíos, Google lo rechazó y solo existe la copia de la Pi. |
-| `plan_semana` | El objetivo de cada semana (lunes): kcal, macros, metabolismo basal, gasto estimado y real, ritmo, fase (`deficit` o `descanso`) y el porqué. Lo escribe `healthsync.calorias --guardar`. |
+| `plan_semana` | El objetivo de cada semana, de martes a lunes (`semana` = el martes; se calcula el lunes anterior): kcal, macros, metabolismo basal, gasto estimado y real, ritmo, fase (`deficit` o `descanso`) y el porqué. Lo escribe `healthsync.calorias --guardar`. |
 | `estado` | Valores sueltos del programa, como el último mensaje leído por el bot (`bot_offset`). |
 | `descartes` | Registros de la API que no deben contar (ver abajo). |
 | `ejecuciones` | Cada sincronización con su estado (`ok`, `parcial`, `error`). |

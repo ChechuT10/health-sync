@@ -1,11 +1,12 @@
 """Calculadora de calorías y macros (código determinista; la IA nunca decide estos números).
 
-Cada semana (lunes) propone el objetivo diario a partir del peso, el % de grasa, los pasos y la
-historia de semanas anteriores, y lo explica. Los límites de seguridad están aquí, en el código, a
+Cada lunes propone el objetivo diario de la semana siguiente, de martes a lunes (el martes se
+compra la comida), a partir del peso, el % de grasa, los pasos y la historia de semanas
+anteriores, y lo explica. Los límites de seguridad están aquí, en el código, a
 propósito: para saltárselos hay que cambiar el código, no un archivo de configuración.
 
 Uso (como usuario healthsync, desde /opt/healthsync/app):
-  python -m healthsync.calorias              # muestra la propuesta de esta semana
+  python -m healthsync.calorias              # muestra la propuesta de la semana que viene
   python -m healthsync.calorias --guardar    # la guarda como plan de la semana y la manda por Telegram
 """
 from __future__ import annotations
@@ -46,7 +47,7 @@ SEMANAS_AGUA = 2            # al empezar, el peso baja por agua: ni se ajusta ni
 
 @dataclass
 class Propuesta:
-    semana: date                       # lunes
+    semana: date                       # martes en que empieza (va de martes a lunes)
     numero: int                        # semana del plan (1, 2…)
     kcal: int
     proteina_g: int
@@ -64,8 +65,14 @@ class Propuesta:
 # --------------------------------------------------------------------------
 # Datos
 # --------------------------------------------------------------------------
-def lunes(d: date) -> date:
-    return d - timedelta(days=d.weekday())
+def proximo_martes(d: date) -> date:
+    """Inicio del plan que se prepara el día d: el martes siguiente (el lunes, mañana)."""
+    return d + timedelta(days=(1 - d.weekday()) % 7 or 7)
+
+
+def martes_en_vigor(d: date) -> date:
+    """Inicio del plan que se está siguiendo el día d: el último martes (el lunes es su último día)."""
+    return d - timedelta(days=(d.weekday() - 1) % 7)
 
 
 def pesadas(con: sqlite3.Connection, hasta: date, dias: int = DIAS_TENDENCIA) -> list[tuple[date, float]]:
@@ -151,7 +158,7 @@ def macros(kcal: int, peso: float) -> tuple[int, int, int]:
 # --------------------------------------------------------------------------
 def proponer(con: sqlite3.Connection, hoy: date | None = None) -> Propuesta | None:
     hoy = hoy or datetime.now(TZ).date()
-    semana = lunes(hoy)
+    semana = proximo_martes(hoy)
     p = persona()
     puntos = pesadas(con, hoy, dias=3650)
     if not puntos:
@@ -159,9 +166,10 @@ def proponer(con: sqlite3.Connection, hoy: date | None = None) -> Propuesta | No
     historia = planes(con, semana)
     inicio = date.fromisoformat(historia[0]["semana"]) if historia else semana
     # Las dos primeras semanas del plan se pierde agua y glucógeno (1-3 kg que no son grasa):
-    # esas pesadas no entran en la tendencia, o inflarían el ritmo y el gasto real
-    utiles = [x for x in puntos if (hoy - x[0]).days < DIAS_TENDENCIA
-              and (not historia or x[0] >= inicio + timedelta(days=SEMANAS_AGUA * 7))]
+    # esas pesadas no entran en la tendencia, o inflarían el ritmo y el gasto real. Cuentan desde
+    # el lunes en que se prepara la semana 3 (último día de la 2)
+    fin_agua = inicio + timedelta(days=SEMANAS_AGUA * 7 - 1)
+    utiles = [x for x in puntos if (hoy - x[0]).days < DIAS_TENDENCIA and (not historia or x[0] >= fin_agua)]
     tend = tendencia(utiles)
     peso = round(tend[0] if tend else puntos[-1][1], 1)
     ritmo = round(-tend[1] / peso * 100, 2) if tend else None
@@ -269,11 +277,22 @@ def guardar(con: sqlite3.Connection, pr: Propuesta) -> None:
     con.commit()
 
 
+def plan_guardado(con: sqlite3.Connection, semana: date) -> Propuesta | None:
+    con.row_factory = sqlite3.Row
+    f = con.execute("SELECT * FROM plan_semana WHERE semana = ?", (semana.isoformat(),)).fetchone()
+    con.row_factory = None
+    if f is None:
+        return None
+    return Propuesta(semana, f["numero"], f["kcal"], f["proteina_g"], f["grasa_g"], f["hidratos_g"],
+                     f["peso_kg"], f["metabolismo_basal"], f["gasto_estimado"], f["gasto_real"],
+                     f["ritmo_pct"], f["fase"], (f["motivo"] or "").splitlines())
+
+
 def texto(pr: Propuesta | None) -> str:
     if pr is None:
         return "Aún no hay ningún peso desde el 01/09: mándalo con /peso y calculo tus calorías."
     lineas = [
-        f"🍽️ Semana {pr.numero} (desde el lunes {pr.semana:%d/%m})" + (" · descanso de dieta" if pr.fase == "descanso" else ""),
+        f"🍽️ Semana {pr.numero} (martes {pr.semana:%d/%m} – lunes {pr.semana + timedelta(days=6):%d/%m})" + (" · descanso de dieta" if pr.fase == "descanso" else ""),
         f"Objetivo: {kc(pr.kcal)} kcal al día",
         f"Proteína {pr.proteina_g} g · grasa {pr.grasa_g} g · hidratos {pr.hidratos_g} g",
         "",

@@ -95,7 +95,7 @@ sudo cp systemd/healthsync-bot.service systemd/healthsync-recordatorio.* /etc/sy
 sudo systemctl daemon-reload
 sudo systemctl enable --now healthsync-bot.service healthsync-recordatorio.timer
 
-# 9. Plan de calorías cada lunes a las 10:00 (se manda por Telegram)
+# 9. Plan de calorías cada lunes a las 10:00, para el martes-lunes siguiente (se manda por Telegram)
 sudo cp systemd/healthsync-calorias.* /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now healthsync-calorias.timer
@@ -103,7 +103,7 @@ sudo systemctl enable --now healthsync-calorias.timer
 
 ### Calorías
 
-`healthsync/calorias.py` calcula cada lunes el objetivo diario con reglas fijas (la IA no decide estos números):
+`healthsync/calorias.py` calcula cada lunes el objetivo diario de la semana siguiente, **de martes a lunes** (el martes se hace la compra), con reglas fijas (la IA no decide estos números):
 
 - **Primera semana:** metabolismo basal (media de Mifflin-St Jeor y Katch-McArdle si hay % de grasa) × factor de actividad según los pasos, menos un 21 %.
 - **Después:** tendencia del peso de las últimas 4 semanas (sin las 2 primeras del plan, que son agua). Ritmo de 0,3-1 % del peso por semana: se mantiene. Más de 1 %: +150 kcal. Menos de 0,3 % dos revisiones seguidas: −100 kcal. Hacen falta 3 pesadas en 14 días o más; si no, no se toca nada.

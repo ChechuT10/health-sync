@@ -105,12 +105,18 @@ def cmd_estado(con, _args: str) -> str:
 def cmd_calorias(con, _args: str) -> str:
     from . import calorias
     hoy = datetime.now(TZ).date()
-    guardado = con.execute("SELECT 1 FROM plan_semana WHERE semana = ?",
-                           (calorias.lunes(hoy).isoformat(),)).fetchone()
+    # El plan en vigor; el lunes, desde las 10:00, ya está guardado el que empieza mañana
+    semanas = [calorias.martes_en_vigor(hoy)]
+    if hoy.weekday() == 0:
+        semanas.insert(0, calorias.proximo_martes(hoy))
+    for semana in semanas:
+        pr = calorias.plan_guardado(con, semana)
+        if pr is not None:
+            return calorias.texto(pr)
     pr = calorias.proponer(con, hoy)
-    if pr is None or guardado:
+    if pr is None:
         return calorias.texto(pr)
-    return calorias.texto(pr) + "\n\n(Propuesta: el plan de la semana se fija el lunes a las 10:00.)"
+    return calorias.texto(pr) + "\n\n(Propuesta: el plan se fija el lunes a las 10:00 y va de martes a lunes.)"
 
 
 COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado, "/calorias": cmd_calorias}
@@ -196,7 +202,7 @@ def bucle() -> None:
 
 def aviso_pesarse(hoy: date, ultimo: date | None) -> str | None:
     """Mensaje de las 6:00, o None si hoy no toca. Sin ninguna pesada: cada día. Lunes: si no
-    te has pesado desde el viernes (a las 10:00 sale el plan). Otros días: cada 3 días si
+    te has pesado desde el viernes (a las 10:00 sale el plan de martes a lunes). Otros días: cada 3 días si
     llevas más de 10 sin pesarte."""
     dias = (hoy - ultimo).days if ultimo else None
     if dias is None:
@@ -204,7 +210,7 @@ def aviso_pesarse(hoy: date, ultimo: date | None) -> str | None:
                 "después del baño.\n/peso 99,4 · /medidas cintura 102 cuello 41")
     if hoy.weekday() == 0 and dias >= 3:
         return ("⚖️ Buenos días, toca pesarse: en ayunas, después del baño. Si puedes, mídete también.\n"
-                "/peso 99,4 · /medidas cintura 102 cuello 41\nA las 10:00 te llega el plan de la semana.")
+                "/peso 99,4 · /medidas cintura 102 cuello 41\nA las 10:00 te llega el plan de martes a lunes.")
     if dias > 10 and dias % 3 == 2:
         return f"⚖️ Buenos días. Llevas {dias} días sin pesarte: si puedes, hazlo ahora en ayunas.\n/peso 99,4"
     return None
