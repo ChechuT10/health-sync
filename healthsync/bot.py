@@ -170,7 +170,7 @@ def cmd_entreno(con, _args: str) -> str:
 
 
 # ---- Comidas de fuera y saltadas ----
-OPCIONES_COMIDA = ["Desayuno", "Media mañana", "Comida", "Merienda", "Cena", "Extra", "Cancelar"]
+OPCIONES_COMIDA = ["Desayuno", "Media mañana", "Comida", "Merienda", "Cena", "Extra", "Corregir", "Cancelar"]
 estimacion: dict | None = None          # comida de fuera esperando a que digas qué sustituye
 foto_pendiente: bytes | None = None     # su foto, que se guarda al confirmar
 
@@ -182,8 +182,8 @@ def _comida(texto: str) -> str:
 def preguntar_sustituye(est: dict, foto: bytes | None = None):
     global estimacion, pendiente, foto_pendiente
     estimacion, pendiente, foto_pendiente = est, "/sustituye", foto
-    return (comidas_txt().texto_estimacion(est) + "\n\n¿Qué comida sustituye? («Extra» si fue algo de más)",
-            OPCIONES_COMIDA)
+    return (comidas_txt().texto_estimacion(est) + "\n\n¿Qué comida sustituye? («Extra» si fue algo de más; "
+            "«Corregir» si alguna cantidad no cuadra)", OPCIONES_COMIDA)
 
 
 def comidas_txt():
@@ -208,12 +208,15 @@ def atender_foto(con, foto: bytes, pie: str = ""):
 
 
 def cmd_sustituye(con, args: str):
-    global estimacion, foto_pendiente
+    global estimacion, foto_pendiente, pendiente
     comidas = comidas_txt()
     c = _comida(args)
     if c == "cancelar" or estimacion is None:
         estimacion = foto_pendiente = None
         return "Vale, no la apunto."
+    if c == "corregir":
+        pendiente = "/corregir"
+        return "✏️ ¿Qué corrijo? Dime cantidades o lo que falte, p. ej. «eran 2 huevos y unos 150 g de lomo» o «sin aceite»."
     if c not in comidas.SUSTITUIBLES + ["extra"]:
         raise medidas.MedidaError("Elige una de las opciones de los botones")
     ahora = datetime.now(TZ)
@@ -231,13 +234,26 @@ def cmd_sustituye(con, args: str):
                else "\nGuardado también en Google Health."))
 
 
+def cmd_corregir(con, args: str):
+    if estimacion is None:
+        return "No hay ninguna comida pendiente de corregir."
+    if not args.strip():
+        raise medidas.MedidaError("Escribe qué hay que corregir")
+    try:
+        est = comidas_txt().estimar(foto=foto_pendiente, correccion=args, previa=estimacion,
+                                    descripcion=estimacion.get("descripcion", ""))
+    except Exception as e:  # noqa: BLE001
+        return preguntar_sustituye(estimacion, foto_pendiente)[0].replace("🍽️", f"❌ No pude rehacerla ({type(e).__name__}).\n🍽️", 1), OPCIONES_COMIDA
+    return preguntar_sustituye(est, foto_pendiente)
+
+
 def cmd_saltar(con, args: str) -> str:
     return comidas_txt().saltar(con, datetime.now(TZ).date(), _comida(args))
 
 
 COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado, "/calorias": cmd_calorias,
             "/hoy": cmd_hoy, "/compra": cmd_compra, "/entreno": cmd_entreno, "/fuera": cmd_fuera,
-            "/saltar": cmd_saltar, "/sustituye": cmd_sustituye}
+            "/saltar": cmd_saltar, "/sustituye": cmd_sustituye, "/corregir": cmd_corregir}
 
 
 # Lista que Telegram enseña al escribir «/» y en el botón Menú

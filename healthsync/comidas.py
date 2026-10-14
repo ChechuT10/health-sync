@@ -146,32 +146,62 @@ def escribir_dia(con: sqlite3.Connection, fecha: date, log=print) -> list[str]:
 # Comidas de fuera y saltadas (desde el bot)
 # --------------------------------------------------------------------------
 def esquema_estimacion() -> dict:
-    num = {"type": "number"}
-    props = {"descripcion": {"type": "string"}, "kcal": num, "kcal_min": num, "kcal_max": num,
-             "proteina": num, "grasa": num, "hidratos": num,
-             "confianza": {"type": "string", "enum": ["alta", "media", "baja"]}, "nota": {"type": "string"}}
+    num, txt = {"type": "number"}, {"type": "string"}
+    componente = {"type": "object", "properties": {"nombre": txt, "medida": txt, "gramos": num, "kcal": num,
+                                                     "proteina": num, "grasa": num, "hidratos": num},
+                  "required": ["nombre", "medida", "gramos", "kcal", "proteina", "grasa", "hidratos"]}
+    props = {"descripcion": txt, "componentes": {"type": "array", "items": componente},
+             "incertidumbre_pct": num, "confianza": {"type": "string", "enum": ["alta", "media", "baja"]}, "nota": txt}
     return {"type": "object", "properties": props, "required": list(props)}
 
 
-def estimar(descripcion: str = "", foto: bytes | None = None) -> dict:
-    """Estimación de Gemini de una comida (foto y/o descripción), con rango."""
+# Probado el 14/10/2026 con fotos reales (Flash, razonamiento medio): pedir que mida volúmenes o que cuente
+# empeora (mide y cuenta de menos); partir de raciones típicas españolas es lo que mejor funciona. Aun así se
+# equivoca contando (huevos, lonchas): por eso el bot enseña el desglose y deja corregirlo.
+# Sesgo medido: con fotos sin corregir, Gemini se queda corto de media un ~12-15 % (14/10/2026, 2 fotos, frente a
+# una estimación manual). Se corrige aquí, en el código, no en el prompt. Revisar con las fotos guardadas.
+FACTOR_FOTO = 1.15
+
+RACIONES = """- Pan: tostada de media barra (las dos mitades) 100-120 g; tostada de pan de molde 30 g; bocadillo 120-150 g.
+- Untables: tomate con aceite de bar en tostada de media barra ≈ 50 g de tomate + 10-15 g de aceite.
+- Carne: filete 120-150 g (crudo); táper con carne en lonchas o tiras para una comida 120-160 g cocinada;
+  una loncha de lomo o pechuga asada 20-25 g.
+- Huevo cocido: 55 g sin cáscara; cuenta las YEMAS visibles (2 mitades de yema = 1 huevo).
+- Verdura cocinada en un táper individual: 150-250 g. Arroz o pasta cocidos de ración: 200-250 g.
+- Aceite de cocinado o aliño de una ración: 10 g (1 cucharada) salvo que se vea claramente más o menos."""
+
+
+def estimar(descripcion: str = "", foto: bytes | None = None, correccion: str = "", previa: dict | None = None) -> dict:
+    """Estimación de Gemini de una comida (foto y/o descripción) con desglose; los totales y el rango los
+    calcula la Pi sumando los componentes. Con «correccion», rehace la estimación anterior con tus datos."""
     from .gemini import generar
     prompt = f"""Eres un dietista-nutricionista en España. Estima la energía y los macros de esta comida{' (foto)' if foto else ''}
 para una persona adulta. {('Pistas de quien la ha comido: ' + descripcion) if descripcion else ''}
-CÓMO ESTIMAR (las estimaciones por foto suelen quedarse cortas, y eso engaña al cálculo del gasto real):
-- Calcula el tamaño de cada ración con referencias de la foto: un plato llano mide ~26 cm, un táper individual
-  ~0,8-1 L, un tenedor ~19 cm, una taza de café ~150-200 ml.
-- Desglosa mentalmente cada componente (gramos y kcal) antes de sumar: el pan, el aceite (tostadas con
-  tomate, salteados, aliños) y las salsas cuentan aparte y son donde más se falla.
-- La proteína sale de cada fuente (carne, huevos, lácteos…): no la redondees a la baja.
-- Si dudas entre dos tamaños, elige el mayor: es mejor pasarse un poco que quedarse corto.
 NO cuentes lo que ya se apunta aparte cada día: {menu.preferencias()["fijos_texto"]}. Si sale un café con leche,
-déjalo fuera de los números y dilo en "nota".
-Da un valor central y un rango realista (kcal_min-kcal_max); con foto, el error típico es del ±30-50 %.
+déjalo fuera y dilo en "nota".
+
+MÉTODO (rellena "componentes", uno por alimento):
+1. Identifica cada alimento y decide a qué RACIÓN TÍPICA ESPAÑOLA se parece más; parte de su peso y ajústalo
+   solo si la foto lo justifica claramente (comparando con el plato, la taza o el táper):
+{RACIONES}
+2. En "medida", la cantidad en lenguaje casero («2 huevos», «media barra», «1 cucharada») para que se pueda revisar.
+3. Calcula kcal y macros de cada componente con valores tipo BEDCA. Si dudas entre dos tamaños, el mayor.
+4. "incertidumbre_pct": cuánto puede variar el total (20-30 % lo normal con foto; menos si te dan las cantidades).
 "descripcion": qué es, en pocas palabras. "nota": un consejo breve si hace falta (sin sermones)."""
+    if correccion and previa:
+        prompt += (f"\n\nTU ESTIMACIÓN ANTERIOR: {json.dumps(previa.get('componentes', []), ensure_ascii=False)}"
+                   f"\nCORRECCIÓN DE QUIEN LA COMIÓ (manda sobre lo que veas en la foto): {correccion}"
+                   "\nRehaz los componentes aplicando la corrección; lo que no corrija, déjalo como estaba.")
     datos = json.loads(generar(MODELO, prompt, esquema=esquema_estimacion(), razonamiento="medium",
                                max_salida=8192, timeout=120, imagen=foto))
-    if not 0 < datos["kcal_min"] <= datos["kcal"] <= datos["kcal_max"] < 5000:
+    comp = datos.get("componentes") or []
+    # Solo a las fotos sin corregir: si tú das las cantidades, no se infla nada
+    datos["ajuste"] = FACTOR_FOTO if foto is not None and not correccion else 1.0
+    for k in MACROS:
+        datos[k] = round(sum(float(c.get(k) or 0) for c in comp) * datos["ajuste"], 1)
+    inc = min(max(float(datos.get("incertidumbre_pct") or 25), 5), 60) / 100
+    datos["kcal_min"], datos["kcal_max"] = round(datos["kcal"] * (1 - inc)), round(datos["kcal"] * (1 + inc))
+    if not comp or not 0 < datos["kcal"] < 5000:
         raise ValueError("estimación sin sentido")
     return datos
 
@@ -217,9 +247,18 @@ def saltar(con: sqlite3.Connection, fecha: date, comida: str) -> str:
 
 
 def texto_estimacion(est: dict) -> str:
-    return (f"🍽️ {est['descripcion']}\n≈ {calorias.kc(est['kcal'])} kcal (entre {calorias.kc(est['kcal_min'])} y "
-            f"{calorias.kc(est['kcal_max'])}) · P {est['proteina']:.0f} · G {est['grasa']:.0f} · H {est['hidratos']:.0f}"
-            f" · confianza {est['confianza']}" + (f"\n{est['nota']}" if est.get("nota") else ""))
+    lineas = [f"🍽️ {est['descripcion']}"]
+    lineas += [f"  • {c['nombre']}: {c['medida']} (~{c['gramos']:.0f} g) → {c['kcal']:.0f} kcal, P {c['proteina']:.0f}"
+               for c in est.get("componentes", [])]
+    lineas.append(f"≈ {calorias.kc(est['kcal'])} kcal (entre {calorias.kc(est['kcal_min'])} y "
+                  f"{calorias.kc(est['kcal_max'])}) · P {est['proteina']:.0f} · G {est['grasa']:.0f} · "
+                  f"H {est['hidratos']:.0f} · confianza {est['confianza']}")
+    if est.get("ajuste", 1.0) != 1.0:
+        lineas.append(f"(Incluye un ajuste de +{round((est['ajuste'] - 1) * 100)} %: las estimaciones por foto suelen "
+                      "quedarse cortas. Si corriges las cantidades, se quita.)")
+    if est.get("nota"):
+        lineas.append(est["nota"])
+    return "\n".join(lineas)
 
 
 # --------------------------------------------------------------------------

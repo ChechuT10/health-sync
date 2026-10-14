@@ -11,7 +11,9 @@ from healthsync.db import conectar
 EJEMPLO = json.loads((Path(__file__).parent / "datos" / "menu_ejemplo.json").read_text())
 MARTES = date(2026, 10, 20)
 EST = {"descripcion": "Hamburguesa con patatas y una caña", "kcal": 1250, "kcal_min": 950, "kcal_max": 1600,
-       "proteina": 45, "grasa": 60, "hidratos": 120, "confianza": "media", "nota": ""}
+       "proteina": 45, "grasa": 60, "hidratos": 120, "confianza": "media", "nota": "",
+       "componentes": [{"nombre": "Hamburguesa", "medida": "1", "gramos": 250, "kcal": 700, "proteina": 40,
+                        "grasa": 40, "hidratos": 40}]}
 
 
 class Comidas(unittest.TestCase):
@@ -100,6 +102,35 @@ class Comidas(unittest.TestCase):
                 bot.atender_foto(self.con, b"foto", "")
                 bot.atender(self.con, "Extra")
             self.assertEqual(len(list(c.FOTOS.glob("2026-10-30_*.jpg"))), 2)
+
+    def test_estimar_suma_componentes_y_rango(self):
+        respuesta = {"descripcion": "Tostada", "incertidumbre_pct": 20, "confianza": "media", "nota": "",
+                     "componentes": [{"nombre": "Pan", "medida": "media barra", "gramos": 100, "kcal": 260,
+                                      "proteina": 8, "grasa": 1, "hidratos": 50},
+                                     {"nombre": "Aceite", "medida": "1 cucharada", "gramos": 12, "kcal": 106,
+                                      "proteina": 0, "grasa": 12, "hidratos": 0}]}
+        with mock.patch("healthsync.gemini.generar", return_value=json.dumps(respuesta)) as g:
+            e = c.estimar(foto=b"x", correccion="sin aceite", previa=respuesta)    # corregida: sin ajuste
+            foto = c.estimar(foto=b"x")                                              # foto sin corregir: +15 %
+            texto = c.estimar(descripcion="tostada con aceite")                      # descripción: sin ajuste
+        self.assertEqual((e["kcal"], e["grasa"], e["kcal_min"], e["kcal_max"]), (366, 13, 293, 439))
+        self.assertEqual((foto["kcal"], foto["ajuste"]), (420.9, 1.15))
+        self.assertIn("+15 %", c.texto_estimacion(foto))
+        self.assertEqual(texto["kcal"], 366)
+        self.assertIn("CORRECCIÓN DE QUIEN LA COMIÓ (manda sobre lo que veas en la foto): sin aceite", g.call_args.args[1])
+
+    def test_bot_corregir(self):
+        nueva = dict(EST, kcal=1500, descripcion="Hamburguesa doble")
+        with mock.patch.object(c, "estimar", side_effect=[EST, nueva]) as est, mock.patch.object(bot, "datetime") as dt:
+            dt.now.return_value = __import__("datetime").datetime(2026, 10, 20, 22, 30)
+            bot.atender_foto(self.con, b"foto", "")
+            self.assertIn("¿Qué corrijo?", bot.atender(self.con, "Corregir"))
+            texto, botones = bot.atender(self.con, "era doble")
+            self.assertEqual(est.call_args.kwargs["correccion"], "era doble")
+            self.assertEqual(est.call_args.kwargs["foto"], b"foto")
+            self.assertIn("Hamburguesa doble", texto)
+            self.assertIn("en lugar de la cena", bot.atender(self.con, "Cena"))
+        self.assertEqual(self.con.execute("SELECT kcal FROM comidas WHERE origen = 'fuera'").fetchone()[0], 1500)
 
     def test_bot_saltar_pregunta_con_botones(self):
         texto, botones = bot.atender(self.con, "/saltar")
