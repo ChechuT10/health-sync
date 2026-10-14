@@ -44,63 +44,15 @@ flowchart LR
 - La API de Gemini se usa en **modalidad de pago**, cuyas condiciones impiden usar los datos para entrenar modelos.
 - Este repositorio contiene **solo código**. Credenciales, datos y configuración personal están en `.gitignore` y nunca se suben.
 
-## Requisitos
+## Montar el tuyo
 
-- Raspberry Pi 3B+ o superior con **Raspberry Pi OS Lite de 64 bits**
-- Cuenta de Google con datos en **Google Health** y un proyecto de Google Cloud con acceso a la Google Health API
-- Opcional: impresora compatible con IPP Everywhere, bot de Telegram y API key de Gemini
+📘 **[Guía paso a paso para montar tu propio Health Sync](docs/guia.md)**: hardware, Google Cloud y Gemini, instalación, bot de Telegram, configuración, gimnasio, qué adaptar a ti, comprobaciones, mantenimiento y problemas conocidos.
 
-## Instalación
+En resumen, necesitas una **Raspberry Pi 3B+ o superior** con Raspberry Pi OS Lite (64 bits), una cuenta con **Google Health**, un proyecto de **Google Cloud**, una clave de la **API de Gemini** en el nivel de pago (céntimos por semana), un **bot de Telegram** y, si quieres el menú en papel, una impresora de red.
 
-```bash
-# 1. Configuración base de la Raspberry (paquetes, cortafuegos, usuario del servicio)
-git clone https://github.com/ChechuT10/health-sync.git
-cd health-sync
-PRINTER_IP=192.168.1.50 sudo -E bash scripts/setup_rpi.sh
+Documentación por partes: [datos](docs/datos.md) · [menú](docs/menu.md) · [gimnasio](docs/entreno.md) · [comidas](docs/comidas.md) · [memoria y coste](docs/recursos.md) · [recuperación](docs/recuperacion.md)
 
-# 2. Código en su sitio
-sudo git clone https://github.com/ChechuT10/health-sync.git /opt/healthsync/app
-sudo chown -R healthsync:healthsync /opt/healthsync/app
-
-# 3. Credenciales OAuth (cliente de tipo "App de escritorio" de Google Cloud)
-sudo install -o healthsync -g healthsync -m 600 client_secret.json /var/lib/healthsync/secrets/
-
-# 4. Autorización (desde tu ordenador, con túnel SSH abierto)
-#    ssh -L 8765:localhost:8765 usuario@IP_DE_TU_RASPBERRY
-sudo -u healthsync /opt/healthsync/venv/bin/python /opt/healthsync/app/tools/fase0.py auth
-
-# 5. Descarga de prueba
-sudo -u healthsync /opt/healthsync/venv/bin/python /opt/healthsync/app/tools/fase0.py dump
-
-# 6. Base de datos: carga histórica y sincronización automática cada 4 horas
-cd /opt/healthsync/app
-sudo -u healthsync /opt/healthsync/venv/bin/python -m healthsync.sync --desde 2026-09-01
-sudo cp systemd/healthsync-sync.* /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now healthsync-sync.timer
-
-# 7. Avisos por Telegram si la sincronización falla
-#    Crea un bot con @BotFather (y en /setjoingroups, Disable) y guarda su token sin que se vea:
-read -rsp "Token del bot: " T && echo "$T" | sudo -u healthsync tee /var/lib/healthsync/secrets/telegram_token >/dev/null && unset T
-sudo -u healthsync chmod 600 /var/lib/healthsync/secrets/telegram_token
-#    Escribe algo a tu bot en Telegram y guarda tu chat:
-sudo -u healthsync /opt/healthsync/venv/bin/python -m healthsync.telegram chat-id
-sudo cp systemd/healthsync-sync.service systemd/healthsync-aviso@.service /etc/systemd/system/
-sudo systemctl daemon-reload
-
-# 8. Bot (/peso, /medidas, /estado) y recordatorio de pesarse
-sudo -u healthsync cp config.example.toml config.toml
-sudo -u healthsync nano config.toml        # tu altura y fecha de nacimiento
-sudo cp systemd/healthsync-bot.service systemd/healthsync-recordatorio.* /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now healthsync-bot.service healthsync-recordatorio.timer
-
-# 9. Cada lunes a las 10:00: plan de calorías para el martes-lunes siguiente y menú con Gemini,
-#    impreso y por Telegram (antes: clave de Gemini y Typst, ver docs/menu.md)
-sudo cp systemd/healthsync-calorias.* /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now healthsync-calorias.timer
-```
+## Cómo decide
 
 ### Calorías
 
