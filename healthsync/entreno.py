@@ -28,7 +28,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from . import calorias
-from .config import DB_FILE, TZ
+from .config import DB_FILE, TOKEN_DRIVE_FILE, TZ
 from .db import conectar
 from .medidas import es
 
@@ -512,7 +512,10 @@ def leer(con: sqlite3.Connection, hoy: date, log=print) -> int:
     if not id_hoja:
         log("Aún no hay Sheet del gimnasio («--iniciar»).")
         return 0
-    s = api.session()
+    if not TOKEN_DRIVE_FILE.exists():
+        log("Falta el token de Drive («fase0.py auth-drive»): no se lee el Sheet.")
+        return 0
+    s = api.session(TOKEN_DRIVE_FILE)
     existentes = sheets.pestanas(s, id_hoja)
     total = 0
     for semana in sorted({calorias.martes_en_vigor(hoy), calorias.proximo_martes(hoy)}):
@@ -610,7 +613,7 @@ def iniciar(con: sqlite3.Connection, pesos: Path | None, hoy: date, log=print) -
         con.commit()
         log(f"{len(datos)} pesos de partida guardados.")
     if not hoja_id(con):
-        s = api.session()
+        s = api.session(TOKEN_DRIVE_FILE)
         id_hoja = sheets.crear(s, TITULO_HOJA, "Cómo se usa")
         con.execute("INSERT INTO estado VALUES ('sheet_gimnasio', ?) "
                     "ON CONFLICT (clave) DO UPDATE SET valor = excluded.valor", (id_hoja,))
@@ -643,7 +646,7 @@ def main() -> int:
             if hoja_id(con):
                 from . import api
                 p = plan(con, calorias.proximo_martes(hoy), hoy)
-                titulo = crear_pestana(api.session(), hoja_id(con), p)
+                titulo = crear_pestana(api.session(TOKEN_DRIVE_FILE), hoja_id(con), p)
                 guardar_semana(con, p, titulo, "")
                 print(texto_plan(p))
             return 0
@@ -657,7 +660,7 @@ def main() -> int:
             except Exception as e:  # noqa: BLE001
                 print(f"No se pudo leer el Sheet: {e}")
             p, cons, cambios = preparar_semana(con, hoy)
-            titulo = crear_pestana(api.session(), hoja_id(con), p) if hoja_id(con) else None
+            titulo = crear_pestana(api.session(TOKEN_DRIVE_FILE), hoja_id(con), p) if hoja_id(con) else None
             guardar_semana(con, p, titulo, cons)
             msg = (f"🏋️ Gimnasio: semana {p['semana_bloque']} del bloque" + (" (descarga)" if p["descarga"] else "")
                    + f", recuperación {p['recuperacion'].replace('_', ' ')}.\n"

@@ -10,6 +10,8 @@ DATA_DIR = Path(os.environ.get("HEALTHSYNC_DATA", "/var/lib/healthsync"))
 SECRETS = DATA_DIR / "secrets"
 CLIENT_FILE = SECRETS / "client_secret.json"
 TOKEN_FILE = SECRETS / "token.json"
+# Drive va en otro token: Google Health rechaza tokens que incluyan permisos de otras APIs
+TOKEN_DRIVE_FILE = SECRETS / "token_drive.json"
 DB_FILE = DATA_DIR / "db" / "salud.db"
 # Configuración personal (no se sube a GitHub): copia de config.example.toml
 CONFIG_FILE = Path(os.environ.get("HEALTHSYNC_CONFIG", Path(__file__).resolve().parent.parent / "config.toml"))

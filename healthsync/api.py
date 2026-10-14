@@ -7,27 +7,30 @@ from datetime import date, timedelta
 from google.auth.transport.requests import AuthorizedSession, Request
 from google.oauth2.credentials import Credentials
 
-from .config import API, TOKEN_FILE
+from pathlib import Path
+
+from .config import API, TOKEN_DRIVE_FILE, TOKEN_FILE
 
 
 class ApiError(Exception):
     pass
 
 
-def session() -> AuthorizedSession:
-    """Sesión autorizada con el token de 'fase0.py auth'. Renueva y guarda el token si caducó."""
-    if not TOKEN_FILE.exists():
-        raise ApiError(f"No hay token en {TOKEN_FILE}: ejecuta 'fase0.py auth'")
-    creds = Credentials.from_authorized_user_file(str(TOKEN_FILE))
+def session(token: Path = TOKEN_FILE) -> AuthorizedSession:
+    """Sesión autorizada con el token de 'fase0.py auth' (o 'auth-drive' con TOKEN_DRIVE_FILE).
+    Renueva y guarda el token si caducó."""
+    if not token.exists():
+        raise ApiError(f"No hay token en {token}: ejecuta 'fase0.py {'auth-drive' if token == TOKEN_DRIVE_FILE else 'auth'}'")
+    creds = Credentials.from_authorized_user_file(str(token))
     if not creds.valid:
         try:
             creds.refresh(Request())
         except Exception as e:  # noqa: BLE001
             raise ApiError(f"No se pudo renovar el token ({e}); vuelve a ejecutar 'fase0.py auth'") from e
-        tmp = TOKEN_FILE.with_suffix(".tmp")
+        tmp = token.with_suffix(".tmp")
         tmp.write_text(creds.to_json())
         tmp.chmod(0o600)
-        tmp.replace(TOKEN_FILE)
+        tmp.replace(token)
     return AuthorizedSession(creds)
 
 

@@ -27,7 +27,7 @@ En el bot: `/entreno` (la sesión de hoy o la siguiente).
 
 ## Puesta en marcha (una vez)
 1. En el proyecto de Google Cloud de la app OAuth: activar **Google Sheets API** y **Google Drive API**, y añadir el permiso `.../auth/drive.file` en la pantalla de consentimiento.
-2. Volver a autorizar con el permiso nuevo: `hs auth` (con el túnel SSH, como en la fase 0).
+2. Autorizar Drive con su **propio token** (`secrets/token_drive.json`): `hs auth-drive` (con el túnel SSH, como en la fase 0). No se puede usar el de Google Health: Health rechaza los tokens que llevan permisos de otras APIs (`403 DISALLOWED_OAUTH_SCOPES`).
 3. `hs-update`, copiar `systemd/healthsync-{sync,calorias}.service` a `/etc/systemd/system/` y `systemctl daemon-reload`; reiniciar `healthsync-bot`.
 4. Rutina, pesos de partida y Sheet:
    ```

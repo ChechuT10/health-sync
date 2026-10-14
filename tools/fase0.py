@@ -38,6 +38,8 @@ DATA_DIR = Path("/var/lib/healthsync")
 SECRETS = DATA_DIR / "secrets"
 CLIENT_FILE = SECRETS / "client_secret.json"
 TOKEN_FILE = SECRETS / "token.json"
+# Token aparte para Drive: Google Health rechaza tokens con permisos de otras APIs (403 DISALLOWED_OAUTH_SCOPES)
+TOKEN_DRIVE_FILE = SECRETS / "token_drive.json"
 OUT_DIR = DATA_DIR / "db" / "fase0"
 API = "https://health.googleapis.com/v4/users/me"
 TZ = ZoneInfo("Europe/Madrid")
@@ -52,8 +54,9 @@ SCOPES = [
     P + "nutrition.readonly",
     P + "nutrition.writeonly",                         # comidas (fases siguientes)
     P + "profile.readonly",
-    "https://www.googleapis.com/auth/drive.file",   # solo los archivos que crea la Pi (Sheet del gimnasio)
 ]
+# Solo los archivos que crea la Pi (Sheet del gimnasio), en su propio token
+SCOPES_DRIVE = ["https://www.googleapis.com/auth/drive.file"]
 
 
 def info(msg: str) -> None:
@@ -71,12 +74,12 @@ def fail(msg: str) -> None:
 # --------------------------------------------------------------------------
 # Credenciales
 # --------------------------------------------------------------------------
-def save_token(creds: Credentials) -> None:
+def save_token(creds: Credentials, destino: Path = TOKEN_FILE) -> None:
     SECRETS.mkdir(parents=True, exist_ok=True)
-    tmp = TOKEN_FILE.with_suffix(".tmp")
+    tmp = destino.with_suffix(".tmp")
     tmp.write_text(creds.to_json())
     tmp.chmod(0o600)
-    tmp.replace(TOKEN_FILE)
+    tmp.replace(destino)
 
 
 def load_session() -> AuthorizedSession:
@@ -95,11 +98,13 @@ def load_session() -> AuthorizedSession:
     return AuthorizedSession(creds)
 
 
-def cmd_auth(_args) -> None:
+def cmd_auth(args) -> None:
+    drive = args.cmd == "auth-drive"
+    scopes, destino = (SCOPES_DRIVE, TOKEN_DRIVE_FILE) if drive else (SCOPES, TOKEN_FILE)
     if not CLIENT_FILE.exists():
         fail(f"Falta {CLIENT_FILE}. Copia ahí el JSON del cliente OAuth de escritorio.")
         sys.exit(1)
-    info("Autorización OAuth")
+    info("Autorización OAuth" + (" de Google Drive (Sheet del gimnasio)" if drive else " de Google Health"))
     print(f"""
   1. Asegúrate de tener abierto en tu ordenador el túnel:
        ssh -L {PORT}:localhost:{PORT} usuario@IP_DE_TU_RASPBERRY
@@ -108,7 +113,7 @@ def cmd_auth(_args) -> None:
      pulsa "Configuración avanzada" y luego "Ir a ... (no seguro)": es tu propia app.
   4. Marca TODAS las casillas de permisos y pulsa "Continuar".
 """)
-    flow = InstalledAppFlow.from_client_secrets_file(str(CLIENT_FILE), SCOPES)
+    flow = InstalledAppFlow.from_client_secrets_file(str(CLIENT_FILE), scopes)
     creds = flow.run_local_server(
         host="localhost",
         port=PORT,
@@ -122,14 +127,16 @@ def cmd_auth(_args) -> None:
         fail("Google no devolvió refresh token. Revoca el acceso en myaccount.google.com/permissions y repite.")
         sys.exit(1)
     granted = set(creds.granted_scopes or [])
-    missing = [s.replace(P, "") for s in SCOPES if granted and s not in granted]
-    save_token(creds)
-    ok(f"Token guardado en {TOKEN_FILE} (permisos 600)")
+    missing = [s.replace(P, "") for s in scopes if granted and s not in granted]
+    save_token(creds, destino)
+    ok(f"Token guardado en {destino} (permisos 600)")
     if missing:
         fail("No se concedieron estos permisos (marca todas las casillas y repite 'auth'):")
         for m in missing:
             print(f"      - {m}")
 
+    if drive:
+        return
     s = AuthorizedSession(creds)
     r = s.get(f"{API}/identity", timeout=30)
     if r.ok:
@@ -674,6 +681,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Health Sync, fase 0")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("auth", help="Autoriza el acceso a Google Health (una vez)")
+    sub.add_parser("auth-drive", help="Autoriza el acceso a Google Drive para el Sheet del gimnasio (una vez)")
     t = sub.add_parser("test", help="Descarga de prueba de un rango de fechas")
     t.add_argument("--desde", default="2026-09-01")
     t.add_argument("--hasta", default="2026-09-30")
@@ -682,7 +690,7 @@ def main() -> None:
     d.add_argument("--hasta", default=(date.today() - timedelta(days=1)).isoformat())
     d.add_argument("--intradia", action="store_true", help="Incluye datos minuto a minuto y segundo a segundo")
     args = ap.parse_args()
-    {"auth": cmd_auth, "test": cmd_test, "dump": cmd_dump}[args.cmd](args)
+    {"auth": cmd_auth, "auth-drive": cmd_auth, "test": cmd_test, "dump": cmd_dump}[args.cmd](args)
 
 
 if __name__ == "__main__":
