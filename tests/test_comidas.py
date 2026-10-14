@@ -117,7 +117,7 @@ class Comidas(unittest.TestCase):
         self.assertEqual((foto["kcal"], foto["ajuste"]), (420.9, 1.15))
         self.assertIn("+15 %", c.texto_estimacion(foto))
         self.assertEqual(texto["kcal"], 366)
-        self.assertIn("CORRECCIÓN DE QUIEN LA COMIÓ (manda sobre lo que veas en la foto): sin aceite", g.call_args.args[1])
+        self.assertIn("CORRECCIÓN DE QUIEN LA COMIÓ (manda sobre lo que veas en la foto): sin aceite", g.call_args_list[0].args[1])
 
     def test_bot_corregir(self):
         nueva = dict(EST, kcal=1500, descripcion="Hamburguesa doble")
