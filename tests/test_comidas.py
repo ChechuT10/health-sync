@@ -87,6 +87,20 @@ class Comidas(unittest.TestCase):
         self.assertEqual(self.con.execute("SELECT kcal_min, kcal_max FROM comidas WHERE origen = 'fuera'").fetchone(),
                          (950, 1600))
 
+    def test_fotos_se_guardan_y_se_borran_a_las_2_semanas(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(c, "FOTOS", Path(d) / "fotos"):
+            c.guardar_foto(1, MARTES, b"jpg")
+            c.guardar_foto(2, MARTES + timedelta(days=10), b"jpg")
+            self.assertEqual(c.borrar_fotos_viejas(MARTES + timedelta(days=14)), 0)
+            self.assertEqual(c.borrar_fotos_viejas(MARTES + timedelta(days=15)), 1)
+            self.assertEqual([f.name for f in c.FOTOS.glob("*.jpg")], ["2026-10-30_2.jpg"])
+            with mock.patch.object(c, "estimar", return_value=EST), mock.patch.object(bot, "datetime") as dt:
+                dt.now.return_value = __import__("datetime").datetime(2026, 10, 30, 21, 30)
+                bot.atender_foto(self.con, b"foto", "")
+                bot.atender(self.con, "Extra")
+            self.assertEqual(len(list(c.FOTOS.glob("2026-10-30_*.jpg"))), 2)
+
     def test_bot_saltar_pregunta_con_botones(self):
         texto, botones = bot.atender(self.con, "/saltar")
         self.assertEqual(botones[0], "Desayuno")

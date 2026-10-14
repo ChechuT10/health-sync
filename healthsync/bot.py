@@ -172,15 +172,16 @@ def cmd_entreno(con, _args: str) -> str:
 # ---- Comidas de fuera y saltadas ----
 OPCIONES_COMIDA = ["Desayuno", "Media mañana", "Comida", "Merienda", "Cena", "Extra", "Cancelar"]
 estimacion: dict | None = None          # comida de fuera esperando a que digas qué sustituye
+foto_pendiente: bytes | None = None     # su foto, que se guarda al confirmar
 
 
 def _comida(texto: str) -> str:
     return texto.strip().lower().replace(" ", "_")
 
 
-def preguntar_sustituye(est: dict):
-    global estimacion, pendiente
-    estimacion, pendiente = est, "/sustituye"
+def preguntar_sustituye(est: dict, foto: bytes | None = None):
+    global estimacion, pendiente, foto_pendiente
+    estimacion, pendiente, foto_pendiente = est, "/sustituye", foto
     return (comidas_txt().texto_estimacion(est) + "\n\n¿Qué comida sustituye? («Extra» si fue algo de más)",
             OPCIONES_COMIDA)
 
@@ -203,22 +204,27 @@ def atender_foto(con, foto: bytes, pie: str = ""):
         est = comidas_txt().estimar(descripcion=pie, foto=foto)
     except Exception as e:  # noqa: BLE001
         return f"❌ No pude estimar la foto ({type(e).__name__}). Prueba otra vez o usa /fuera con una descripción."
-    return preguntar_sustituye(est)
+    return preguntar_sustituye(est, foto)
 
 
 def cmd_sustituye(con, args: str):
-    global estimacion
+    global estimacion, foto_pendiente
     comidas = comidas_txt()
     c = _comida(args)
     if c == "cancelar" or estimacion is None:
-        estimacion = None
+        estimacion = foto_pendiente = None
         return "Vale, no la apunto."
     if c not in comidas.SUSTITUIBLES + ["extra"]:
         raise medidas.MedidaError("Elige una de las opciones de los botones")
     ahora = datetime.now(TZ)
-    _, error = comidas.guardar_fuera(con, ahora.date(), c, estimacion, comidas.hora_de(c, ahora))
+    fid, error = comidas.guardar_fuera(con, ahora.date(), c, estimacion, comidas.hora_de(c, ahora))
+    if foto_pendiente:
+        try:
+            comidas.guardar_foto(fid, ahora.date(), foto_pendiente)
+        except OSError as e:
+            print(f"No se pudo guardar la foto: {e}", file=sys.stderr, flush=True)
     nombre, kcal = estimacion["descripcion"], estimacion["kcal"]
-    estimacion = None
+    estimacion = foto_pendiente = None
     destino = "como algo extra" if c == "extra" else f"en lugar de la {c.replace('_', ' ')} del menú"
     return (f"✅ Apuntado {destino}: {nombre} (~{comidas.calorias.kc(kcal)} kcal)."
             + (f"\n⚠️ Google Health no la aceptó: {error}. Se reintenta esta noche." if error

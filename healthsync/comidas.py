@@ -20,7 +20,7 @@ import sys
 from datetime import date, datetime, timedelta, timezone
 
 from . import calorias, menu
-from .config import DB_FILE, TZ
+from .config import DATA_DIR, DB_FILE, TZ
 from .db import conectar
 from .medidas import es
 
@@ -29,6 +29,8 @@ TIPO_GOOGLE = {"desayuno": "BREAKFAST", "media_mañana": "SNACK", "comida": "LUN
 SUSTITUIBLES = ["desayuno", "media_mañana", "comida", "merienda", "cena"]
 MACROS = ("kcal", "proteina", "grasa", "hidratos")
 MODELO = "gemini-flash-latest"
+FOTOS = DATA_DIR / "fotos"
+DIAS_FOTOS = 14             # las fotos de comidas se borran a las 2 semanas
 
 
 # --------------------------------------------------------------------------
@@ -156,7 +158,13 @@ def estimar(descripcion: str = "", foto: bytes | None = None) -> dict:
     from .gemini import generar
     prompt = f"""Eres un dietista-nutricionista en España. Estima la energía y los macros de esta comida{' (foto)' if foto else ''}
 para una persona adulta. {('Pistas de quien la ha comido: ' + descripcion) if descripcion else ''}
-Ten en cuenta aceites, salsas y bebidas visibles o mencionadas, que es donde más se suele fallar.
+CÓMO ESTIMAR (las estimaciones por foto suelen quedarse cortas, y eso engaña al cálculo del gasto real):
+- Calcula el tamaño de cada ración con referencias de la foto: un plato llano mide ~26 cm, un táper individual
+  ~0,8-1 L, un tenedor ~19 cm, una taza de café ~150-200 ml.
+- Desglosa mentalmente cada componente (gramos y kcal) antes de sumar: el pan, el aceite (tostadas con
+  tomate, salteados, aliños) y las salsas cuentan aparte y son donde más se falla.
+- La proteína sale de cada fuente (carne, huevos, lácteos…): no la redondees a la baja.
+- Si dudas entre dos tamaños, elige el mayor: es mejor pasarse un poco que quedarse corto.
 NO cuentes lo que ya se apunta aparte cada día: {menu.preferencias()["fijos_texto"]}. Si sale un café con leche,
 déjalo fuera de los números y dilo en "nota".
 Da un valor central y un rango realista (kcal_min-kcal_max); con foto, el error típico es del ±30-50 %.
@@ -179,6 +187,20 @@ def guardar_fuera(con: sqlite3.Connection, fecha: date, comida: str, est: dict, 
             con.execute("DELETE FROM comidas WHERE id = ?", (previa[0],))
     fid = registrar(con, fecha, comida, "fuera", est["descripcion"], est, hora, (est["kcal_min"], est["kcal_max"]))
     return fid, subir(con, fid)
+
+
+def guardar_foto(fid: int, fecha: date, foto: bytes) -> None:
+    """Guarda la foto de una comida de fuera (para revisar las estimaciones); se borra a las 2 semanas."""
+    FOTOS.mkdir(mode=0o700, parents=True, exist_ok=True)
+    (FOTOS / f"{fecha.isoformat()}_{fid}.jpg").write_bytes(foto)
+
+
+def borrar_fotos_viejas(hoy: date) -> int:
+    limite = (hoy - timedelta(days=DIAS_FOTOS)).isoformat()
+    viejas = [f for f in FOTOS.glob("*.jpg") if f.name[:10] < limite] if FOTOS.exists() else []
+    for f in viejas:
+        f.unlink()
+    return len(viejas)
 
 
 def saltar(con: sqlite3.Connection, fecha: date, comida: str) -> str:
@@ -267,6 +289,8 @@ def main() -> int:
             from . import telegram
             hoy = args.fecha or datetime.now(TZ).date()
             errores = escribir_dia(con, hoy)
+            if n := borrar_fotos_viejas(hoy):
+                print(f"{n} fotos de comidas de hace más de {DIAS_FOTOS} días borradas.")
             if errores:
                 telegram.enviar("⚠️ No se pudieron escribir algunas comidas en Google Health (se reintenta mañana):\n"
                                 + "\n".join(errores))
