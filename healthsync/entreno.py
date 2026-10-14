@@ -684,6 +684,7 @@ def iniciar(con: sqlite3.Connection, pesos: Path | None, hoy: date, log=print, r
             ["La Pi lee el Sheet cada 4 h y actualiza los objetivos de lo que aún no has hecho."],
             ["Si un día cambias el entreno al miércoles, haz esa sesión y ya: el orden no importa."]])
         log(f"Sheet creado: {sheets.enlace(id_hoja)}")
+    return semana
 
 
 def main() -> int:
@@ -694,16 +695,19 @@ def main() -> int:
     ap.add_argument("--leer", action="store_true", help="lee el Sheet y actualiza los objetivos pendientes")
     ap.add_argument("--rehacer", action="store_true",
                     help="con --iniciar: sustituye la rutina base (y su pestaña) si aún no hay series apuntadas")
+    ap.add_argument("--desde", type=date.fromisoformat, metavar="AAAA-MM-DD",
+                    help="con --iniciar: martes en que empieza la rutina (por defecto, el siguiente)")
     ap.add_argument("--fecha", type=date.fromisoformat, help="como si hoy fuera esta fecha")
     args = ap.parse_args()
     hoy = args.fecha or datetime.now(TZ).date()
     con = conectar(DB_FILE)
     try:
         if args.iniciar is not None:
-            iniciar(con, Path(args.iniciar) if args.iniciar else None, hoy, rehacer=args.rehacer)
+            semana = iniciar(con, Path(args.iniciar) if args.iniciar else None, hoy, rehacer=args.rehacer,
+                             desde=args.desde)
             if hoja_id(con):
                 from . import api
-                p = plan(con, calorias.proximo_martes(hoy), hoy)
+                p = plan(con, semana, hoy)
                 titulo = crear_pestana(api.session(TOKEN_DRIVE_FILE), hoja_id(con), p)
                 guardar_semana(con, p, titulo, "")
                 print(texto_plan(p))

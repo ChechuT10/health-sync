@@ -121,6 +121,17 @@ class ConBase(unittest.TestCase):
             with self.assertRaises(e.EntrenoError):
                 e.iniciar(self.con, None, LUNES, log=lambda *_: None, rehacer=True)
 
+    def test_adelantar_la_rutina_a_la_semana_en_curso(self):
+        self.con.execute("INSERT INTO estado VALUES ('sheet_gimnasio', 'falso')")
+        miercoles = MARTES - timedelta(days=6)                            # 14/10
+        with mock.patch.object(e, "TOKEN_DRIVE_FILE", Path("/no/existe")):
+            inicio = e.iniciar(self.con, None, miercoles, log=lambda *_: None, rehacer=True,
+                               desde=MARTES - timedelta(days=7))
+        self.assertEqual(inicio, date(2026, 10, 13))
+        self.assertEqual(e.plan(self.con, MARTES, LUNES)["semana_bloque"], 2)   # la del 20/10 ya es la 2.ª
+        with self.assertRaises(e.EntrenoError):
+            e.iniciar(self.con, None, miercoles, log=lambda *_: None, desde=miercoles)   # no es martes
+
     def test_duracion_de_la_base(self):
         for d in BASE["dias"]:
             self.assertLessEqual(e.minutos(d), e.MAX_MINUTOS, d["id"])
