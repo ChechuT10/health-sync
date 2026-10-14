@@ -96,6 +96,13 @@ class Montar(unittest.TestCase):
         self.assertEqual(r["origen"], "ia_corregido")
         self.assertIn("ERRORES", g.call_args_list[2].args[1])   # la 2.ª petición lleva los errores
 
+    def test_respuesta_cortada_se_vuelve_a_pedir(self):
+        respuestas = iter(["productos", '{"resumen": "cort', json.dumps(EJEMPLO)])
+        with mock.patch.object(m, "generar", side_effect=lambda *a, **k: next(respuestas)) as g:
+            r = m.montar(self.con, date(2026, 10, 20), self.plan, log=lambda *_: None)
+        self.assertEqual(r["origen"], "ia_corregido")
+        self.assertNotIn("PROPUESTA ANTERIOR", g.call_args_list[2].args[1])
+
     def test_si_falla_repite_el_anterior(self):
         m.guardar(self.con, date(2026, 10, 13), {"menu": EJEMPLO, "investigacion": "", "revision": {}, "origen": "ia"})
         with mock.patch.object(m, "generar", return_value="{}"):

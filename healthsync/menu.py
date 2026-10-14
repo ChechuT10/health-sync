@@ -46,6 +46,7 @@ OBLIGATORIAS = ["desayuno", "comida", "merienda", "cena"]
 # Tus preferencias. Se pueden cambiar en config.toml, sección [menu] (mismos nombres)
 PREFERENCIAS = {
     "modelo": "gemini-flash-latest",
+    "razonamiento": "high",          # cuánto piensa Gemini al montar el menú (low, medium, high)
     "supermercados": ["Mercadona", "Lidl", "Dia", "Ahorramás"],
     "horario": {"desayuno": "8:00", "media_mañana": "11:00", "comida": "14:00", "merienda": "18:00",
                 "cena": "22:00"},
@@ -159,6 +160,16 @@ PRODUCTOS ENCONTRADOS ESTA SEMANA (puedes usarlos, sobre todo si son novedades q
 TABLA DE REFERENCIA (alimentos habituales; valores por 100 g). Puedes usar cualquier otro alimento:
 {tabla_csv}
 
+CALIDAD (un programa revisa todo esto):
+- Cantidades que una persona usaría de verdad: nada de 1-4 g de nada ("unas gotas", "spray", "2 mitades"
+  de nuez). Aceite: 0 g o al menos 5 g (1 cucharadita). Frutos secos: 0 o al menos 10 g. Si sobra o falta
+  grasa, ajusta la proteína (pollo ↔ muslo, claras ↔ huevo entero) o el aceite en otra comida.
+- Variedad dentro de la repetición: al menos 4 proteínas principales distintas en la semana; el mismo día,
+  la comida y la cena con proteínas distintas; 2 meriendas realmente distintas (no la misma con otro nombre).
+- Cada plato debe tener sentido como plato (cómo se come y se cocina): no mezclas raras para cuadrar números.
+- Los valores por 100 g, siempre en el mismo estado que los gramos (arroz y pasta en crudo: ~350 kcal).
+- Antes de responder, suma tú mismo cada día y comprueba que cuadra.
+
 CÓMO RESPONDER:
 - "alimentos": cada alimento que uses, con valores por 100 g EN EL ESTADO EN QUE SE PESA (la carne, el
   pescado, el arroz y la pasta, en crudo). Si está en la tabla, pon su id en "id_tabla" y usa sus valores;
@@ -231,8 +242,9 @@ def revisar(menu: dict, objetivo: dict, fijos: dict, prefs: dict) -> tuple[list[
         for i in p["ingredientes"]:
             if i["alimento"] not in alim:
                 errores.append(f"Plato {p['id']}: el alimento {i['alimento']} no está en «alimentos».")
-            elif not 0 < i["gramos"] <= 800:
-                errores.append(f"Plato {p['id']}: {i['gramos']:g} g de {i['alimento']} no es razonable.")
+            elif not 5 <= i["gramos"] <= 800:
+                errores.append(f"Plato {p['id']}: {i['gramos']:g} g de {i['alimento']} no es una cantidad "
+                               "razonable (mínimo 5 g; si no hace falta, quítalo).")
 
     dias = menu.get("dias", [])
     if [d["dia"] for d in dias] != DIAS:
@@ -294,18 +306,21 @@ def montar(con: sqlite3.Connection, semana: date, plan: calorias.Propuesta, log=
 
     prompt = prompt_menu(prefs, semana, objetivo, para_platos(objetivo, fijos), investigacion, nombres)
     errores: list[str] = []
+    menu = None
     for intento in range(1 + CORRECCIONES):
         log(f"Gemini: montando el menú (intento {intento + 1})…")
         texto = prompt
-        if intento:
+        if menu is not None:
             texto += ("\n\nTU PROPUESTA ANTERIOR:\n" + json.dumps(menu, ensure_ascii=False) +
                       "\n\nUN PROGRAMA LA HA REVISADO Y HA ENCONTRADO ESTOS ERRORES. Corrígelos (ajusta gramos "
                       "o cambia platos) y devuelve el menú completo:\n- " + "\n- ".join(errores))
         try:
-            menu = json.loads(generar(prefs["modelo"], texto, esquema=esquema(), timeout=900))
+            menu = json.loads(generar(prefs["modelo"], texto, esquema=esquema(),
+                                      razonamiento=prefs["razonamiento"], timeout=1200))
         except (GeminiError, json.JSONDecodeError) as e:
             errores = [f"Respuesta no válida: {e}"]
             log(errores[0])
+            menu = None                                       # se vuelve a pedir desde cero
             continue
         errores, totales = revisar(menu, objetivo, fijos, prefs)
         if not errores:

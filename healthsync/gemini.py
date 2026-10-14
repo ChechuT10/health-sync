@@ -21,14 +21,19 @@ class GeminiError(Exception):
 
 
 def generar(modelo: str, prompt: str, *, buscar: bool = False, esquema: dict | None = None,
-            timeout: int = 180) -> str:
+            razonamiento: str | None = None, timeout: int = 180) -> str:
     """Texto de la respuesta. buscar=True deja a Gemini buscar en Google; esquema = JSON Schema
-    de la respuesta (con esquema no busca: por eso son dos llamadas distintas)."""
+    de la respuesta (con esquema no busca: por eso son dos llamadas distintas). razonamiento: low,
+    medium o high (cuánto piensa antes de responder; más tarda más)."""
     cuerpo: dict = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
     if buscar:
         cuerpo["tools"] = [{"google_search": {}}]
+    conf: dict = {"maxOutputTokens": 65536}          # el razonamiento también gasta de aquí
     if esquema:
-        cuerpo["generationConfig"] = {"responseMimeType": "application/json", "responseJsonSchema": esquema}
+        conf |= {"responseMimeType": "application/json", "responseJsonSchema": esquema}
+    if razonamiento:
+        conf["thinkingConfig"] = {"thinkingLevel": razonamiento}
+    cuerpo["generationConfig"] = conf
     pet = urllib.request.Request(URL.format(modelo=modelo), json.dumps(cuerpo).encode(), method="POST",
                                  headers={"Content-Type": "application/json",
                                           "x-goog-api-key": KEY_FILE.read_text().strip()})
@@ -48,7 +53,11 @@ def generar(modelo: str, prompt: str, *, buscar: bool = False, esquema: dict | N
                 continue
             raise GeminiError(f"Gemini no responde: {e}") from e
     try:
-        partes = datos["candidates"][0]["content"]["parts"]
+        cand = datos["candidates"][0]
+        partes = cand["content"]["parts"]
     except (KeyError, IndexError) as e:
         raise GeminiError(f"Respuesta sin contenido: {json.dumps(datos)[:300]}") from e
+    if cand.get("finishReason") not in (None, "STOP"):
+        raise GeminiError(f"Respuesta incompleta ({cand['finishReason']}, "
+                          f"{datos.get('usageMetadata', {}).get('thoughtsTokenCount', '?')} tokens pensando)")
     return "".join(p.get("text", "") for p in partes if not p.get("thought"))

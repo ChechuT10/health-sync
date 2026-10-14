@@ -20,6 +20,7 @@ grasa_objetivo_pct = 16    # % de grasa al que se quiere llegar
 # PREFERENCIAS en healthsync/menu.py. Gemini recibe esto y las calorías, nunca tu peso ni tu % de grasa.
 [menu]
 modelo = "gemini-flash-latest"   # Pro (3.1 preview) tarda demasiado; Flash busca y responde bien
+razonamiento = "high"            # cuánto piensa al montar el menú: low, medium o high
 supermercados = ["Mercadona", "Lidl", "Dia", "Ahorramás"]
 dias_entreno = ["lunes", "martes", "jueves", "viernes"]
 hora_entreno = "18:00-19:00"
