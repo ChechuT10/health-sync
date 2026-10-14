@@ -11,3 +11,6 @@ ExecStart=/opt/healthsync/venv/bin/python -m healthsync.calorias --guardar
 # Gemini tarda varios minutos (la Pi solo espera); si falla, avisa por Telegram y el plan de calorías ya está guardado
 ExecStart=/opt/healthsync/venv/bin/python -m healthsync.menu --guardar --imprimir
 TimeoutStartSec=45min
+# Límites: la Pi tiene 1 GB compartido con otros proyectos (ver docs/recursos.md)
+MemoryMax=250M
+Nice=10

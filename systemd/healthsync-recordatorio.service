@@ -8,3 +8,6 @@ User=healthsync
 Group=healthsync
 WorkingDirectory=/opt/healthsync/app
 ExecStart=/opt/healthsync/venv/bin/python -m healthsync.bot recordatorio
+# Límites: la Pi tiene 1 GB compartido con otros proyectos (ver docs/recursos.md)
+MemoryMax=100M
+Nice=10
