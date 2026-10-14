@@ -49,11 +49,15 @@ class Reglas(unittest.TestCase):
 
     def test_volumen_y_duracion(self):
         r = copy.deepcopy(BASE)
-        r["dias"][1]["ejercicios"] = r["dias"][1]["ejercicios"][:4]
+        for d in r["dias"]:
+            for x in d["ejercicios"]:
+                if x["musculos"][0] == "pecho":
+                    x["series"] = 2                               # pecho: 4 series a la semana
+        self.assertIn("Volumen de pecho", " ".join(e.validar_rutina(r)))
+        r = copy.deepcopy(BASE)
         for x in r["dias"][1]["ejercicios"]:
-            x["series"] = 5
-        errores = " ".join(e.validar_rutina(r))
-        self.assertIn("Volumen de", errores)
+            x["series"] = 5                                       # Torso 1 a 5 series: más de 60 min
+        self.assertIn("T1: ~", " ".join(e.validar_rutina(r)))
 
 
 class Progresion(unittest.TestCase):
@@ -106,6 +110,20 @@ class ConBase(unittest.TestCase):
 
     def tearDown(self):
         self.con.close()
+
+    def test_rehacer_base_solo_sin_series(self):
+        self.con.execute("INSERT INTO estado VALUES ('sheet_gimnasio', 'falso')")   # sin Google en las pruebas
+        with mock.patch.object(e, "TOKEN_DRIVE_FILE", Path("/no/existe")):
+            e.iniciar(self.con, None, LUNES, log=lambda *_: None, rehacer=True)
+            self.assertEqual(e.bloque_en_vigor(self.con, MARTES)[2], "base")
+            self.con.execute("INSERT INTO series (id, semana, dia, ejercicio, variante, serie, kg, reps) "
+                             "VALUES ('x', ?, 'P1', 'rdl', 'Peso muerto rumano con barra', 1, 60, 8)", (MARTES.isoformat(),))
+            with self.assertRaises(e.EntrenoError):
+                e.iniciar(self.con, None, LUNES, log=lambda *_: None, rehacer=True)
+
+    def test_duracion_de_la_base(self):
+        for d in BASE["dias"]:
+            self.assertLessEqual(e.minutos(d), e.MAX_MINUTOS, d["id"])
 
     def test_recuperacion(self):
         self.assertEqual(e.recuperacion(self.con, LUNES)[0], "sin_datos")

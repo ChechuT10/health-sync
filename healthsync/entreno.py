@@ -38,7 +38,9 @@ ORDEN_DIAS = ["martes", "miércoles", "jueves", "viernes", "sábado", "domingo",
 SEMANAS_BLOQUE = 12
 DESCARGA_CADA = 6            # cada 6.ª semana del bloque: mitad de series, mismo peso, RIR 3-4
 ESTANCADOS_PARA_CAMBIAR = 3
-MODELO = "gemini-flash-latest"
+# Versión fija (no un alias «latest»): un cambio de Google no nos pasa a un modelo más caro sin decidirlo.
+# Probado el 14/10/2026: 3.8 Flash cumple las reglas a la primera; 3.1 Pro tarda el doble y necesitó 3 intentos.
+MODELO = "gemini-3.8-flash"
 
 # ---- Reglas de seguridad (nota 04): la Pi rechaza cualquier rutina que las incumpla ----
 RODILLA_MAX = 90
@@ -48,7 +50,30 @@ PROHIBIDO = [r"sentadilla (profunda|completa|libre)", r"b[uú]lgara", r"zancada(
              r"press (de )?banca con barra", r"jefferson", r"saltos?", r"pliom", r"burpee", r"sprint"]
 VOLUMEN = {"pecho": (6, 18), "espalda": (8, 20), "hombro": (6, 18), "cuadriceps": (6, 18),
            "isquios": (6, 18), "gluteo": (6, 20), "biceps": (4, 16), "triceps": (4, 16)}
-MAX_MINUTOS = 70
+MAX_MINUTOS = 60
+CALENTAMIENTO_MIN = 8        # bici o remo suave
+PREHAB_TORSO_MIN = 4         # rotación externa y face pull ligero, los días de torso
+
+
+def minutos(dia: dict) -> float:
+    """Duración estimada de una sesión: 2,5 min por serie en multiarticulares (más descanso), 2 en
+    aislados; una superserie cuenta como el más largo de los dos más un 30 %."""
+    total = CALENTAMIENTO_MIN + (PREHAB_TORSO_MIN if str(dia.get("id", "")).startswith("T") else 0)
+    ejercicios = {e.get("id"): e for e in dia.get("ejercicios", [])}
+    vistos = set()
+    for e in ejercicios.values():
+        if e.get("id") in vistos:
+            continue
+        t = e.get("series", 0) * (2.5 if len(e.get("musculos") or []) >= 2 else 2.0)
+        pareja = ejercicios.get(e.get("superserie") or "")
+        if pareja and pareja.get("id") not in vistos:
+            t2 = pareja.get("series", 0) * (2.5 if len(pareja.get("musculos") or []) >= 2 else 2.0)
+            t = max(t, t2) * 1.3
+            vistos.add(pareja.get("id"))
+        vistos.add(e.get("id"))
+        total += t
+    return total
+MAX_SALIDA_RUTINA = 49152   # medido el 14/10/2026: ~32 k (2,9 k + 29 k pensando)
 
 
 class EntrenoError(Exception):
@@ -94,9 +119,9 @@ def validar_rutina(rutina: dict) -> list[str]:
         ejercicios = d.get("ejercicios", [])
         if not 4 <= len(ejercicios) <= 8:
             errores.append(f"{d.get('id')}: {len(ejercicios)} ejercicios (entre 4 y 8).")
-        minutos = 8 + sum(e.get("series", 0) * 2.5 for e in ejercicios)
-        if minutos > MAX_MINUTOS:
-            errores.append(f"{d.get('id')}: ~{minutos:.0f} min, más de {MAX_MINUTOS}.")
+        if (m := minutos(d)) > MAX_MINUTOS:
+            errores.append(f"{d.get('id')}: ~{m:.0f} min con calentamiento, más de {MAX_MINUTOS}. Quita series o "
+                           "ejercicios, o junta dos en superserie.")
         for e in ejercicios:
             nombre = f"{d.get('id')}/{e.get('id')}"
             if e.get("id") in ids:
@@ -291,7 +316,7 @@ def esquema_rutina() -> dict:
                 "id": txt, "variantes": {"type": "array", "items": txt}, "series": {"type": "integer"},
                 "reps": {"type": "array", "items": {"type": "integer"}}, "rir": {"type": "integer"},
                 "incremento": num, "musculos": {"type": "array", "items": txt}, "rodilla_max": {"type": "integer"},
-                "sobre_cabeza": {"type": "boolean"}, "nota": txt, "kg_estimado": num})}})},
+                "sobre_cabeza": {"type": "boolean"}, "superserie": txt, "nota": txt, "kg_estimado": num})}})},
         "calentamiento": txt,
     })
 
@@ -313,9 +338,13 @@ REGLAS QUE NO SE PUEDEN SALTAR (un programa las comprueba):
 - Asma: nada de HIIT ni sprints.
 - Estructura: 4 días, Pierna 1 (martes, cadera), Torso 1 (jueves, empuje horizontal), Pierna 2 (viernes,
   cuádriceps) y Torso 2 (lunes, tirón y hombro). 4-8 ejercicios por día, 2-5 series, como mucho ~60 min.
-- Volumen semanal en series efectivas (el primer músculo de "musculos" cuenta 1, los demás 0,5): 10-14 por
-  músculo grande. Músculos: pecho, espalda, hombro, biceps, triceps, cuadriceps, isquios, gluteo, gemelo, core,
-  aductores.
+- Volumen semanal en series efectivas (el primer músculo de "musculos" cuenta 1, los demás 0,5): 10-14 para
+  los grandes (pecho, espalda, hombro, cuadriceps, isquios, gluteo) y 4-10 para los pequeños (biceps, triceps,
+  gemelo, core, aductores). Usa solo esos nombres de músculo. 3-4 series por ejercicio (5 solo excepcionalmente).
+- TIEMPO: cada sesión como mucho {MAX_MINUTOS} min, contando {CALENTAMIENTO_MIN} min de calentamiento (+{PREHAB_TORSO_MIN} de
+  prevención del hombro los días de torso), 2,5 min por serie en multiarticulares y 2 en aislados. Una
+  superserie ("superserie": id del otro ejercicio, en los dos) cuenta como el más largo de los dos + 30 %.
+  Usa superseries de antagonistas (bíceps/tríceps, abductores/aductores) para ahorrar tiempo.
 - Cada ejercicio con 1-4 variantes (la primera es la principal; las demás, por si la máquina está ocupada).
 
 QUÉ HACER: cambia los ejercicios que lo necesiten (estancados, con dolor o, si se renueva el bloque, un 30-50 %
@@ -364,7 +393,8 @@ def proponer_cambio(rutina: dict, motivo: str, resumen: str, log=print) -> dict 
             pet += ("\n\nTU PROPUESTA ANTERIOR:\n" + json.dumps(nueva, ensure_ascii=False) +
                     "\n\nINCUMPLE ESTAS REGLAS; corrígela y devuélvela completa:\n- " + "\n- ".join(errores))
         try:
-            nueva = json.loads(generar(MODELO, pet, esquema=esquema_rutina(), razonamiento="high", timeout=1200))
+            nueva = json.loads(generar(MODELO, pet, esquema=esquema_rutina(), razonamiento="high",
+                                       max_salida=MAX_SALIDA_RUTINA, timeout=1200))
         except (GeminiError, json.JSONDecodeError) as e:
             log(f"Respuesta no válida: {e}")
             nueva = None
@@ -393,7 +423,7 @@ PLAN:
 HISTORIAL RECIENTE:
 {resumen}"""
     try:
-        return generar(MODELO, prompt, razonamiento="low", timeout=300).strip()
+        return generar(MODELO, prompt, razonamiento="low", max_salida=4096, timeout=300).strip()
     except GeminiError as e:
         return f"(Sin consejos esta semana: {e})"
 
@@ -596,9 +626,20 @@ def guardar_semana(con: sqlite3.Connection, p: dict, pestana: str | None, consej
     con.commit()
 
 
-def iniciar(con: sqlite3.Connection, pesos: Path | None, hoy: date, log=print) -> None:
-    from . import api, sheets
+def iniciar(con: sqlite3.Connection, pesos: Path | None, hoy: date, log=print, rehacer: bool = False) -> None:
     semana = calorias.proximo_martes(hoy)
+    actual = bloque_en_vigor(con, semana)
+    if rehacer and actual:
+        inicio, _, origen = actual
+        if origen != "base" or con.execute("SELECT 1 FROM series WHERE semana >= ?", (inicio.isoformat(),)).fetchone():
+            raise EntrenoError("Solo se puede rehacer la rutina base antes de apuntar ninguna serie.")
+        con.execute("DELETE FROM rutina_bloque WHERE inicio = ?", (inicio.isoformat(),))
+        con.execute("DELETE FROM entreno_semana WHERE semana >= ?", (inicio.isoformat(),))
+        con.commit()
+        if hoja_id(con) and TOKEN_DRIVE_FILE.exists():
+            from . import api, sheets
+            sheets.borrar_pestana(api.session(TOKEN_DRIVE_FILE), hoja_id(con), nombre_pestana(inicio))
+        log(f"Rutina base anterior y pestaña «{nombre_pestana(inicio)}» borradas.")
     if bloque_en_vigor(con, semana) is None:
         rutina = json.loads(RUTINA_BASE.read_text())
         errores = validar_rutina(rutina)
@@ -613,6 +654,7 @@ def iniciar(con: sqlite3.Connection, pesos: Path | None, hoy: date, log=print) -
         con.commit()
         log(f"{len(datos)} pesos de partida guardados.")
     if not hoja_id(con):
+        from . import api, sheets
         s = api.session(TOKEN_DRIVE_FILE)
         id_hoja = sheets.crear(s, TITULO_HOJA, "Cómo se usa")
         con.execute("INSERT INTO estado VALUES ('sheet_gimnasio', ?) "
@@ -636,13 +678,15 @@ def main() -> int:
                     help="rutina base, pesos de partida (opcional) y Sheet")
     ap.add_argument("--guardar", action="store_true", help="semana nueva: plan, pestaña, consejos y Telegram")
     ap.add_argument("--leer", action="store_true", help="lee el Sheet y actualiza los objetivos pendientes")
+    ap.add_argument("--rehacer", action="store_true",
+                    help="con --iniciar: sustituye la rutina base (y su pestaña) si aún no hay series apuntadas")
     ap.add_argument("--fecha", type=date.fromisoformat, help="como si hoy fuera esta fecha")
     args = ap.parse_args()
     hoy = args.fecha or datetime.now(TZ).date()
     con = conectar(DB_FILE)
     try:
         if args.iniciar is not None:
-            iniciar(con, Path(args.iniciar) if args.iniciar else None, hoy)
+            iniciar(con, Path(args.iniciar) if args.iniciar else None, hoy, rehacer=args.rehacer)
             if hoja_id(con):
                 from . import api
                 p = plan(con, calorias.proximo_martes(hoy), hoy)

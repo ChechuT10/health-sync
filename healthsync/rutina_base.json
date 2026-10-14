@@ -27,7 +27,8 @@
      ],
      "rodilla_max": 30,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "sentadilla_cajon",
@@ -49,7 +50,8 @@
      ],
      "rodilla_max": 90,
      "sobre_cabeza": false,
-     "nota": "Cajón a la altura que deja la rodilla a 90°"
+     "nota": "Cajón a la altura que deja la rodilla a 90°",
+     "superserie": ""
     },
     {
      "id": "hip_thrust",
@@ -71,7 +73,8 @@
      ],
      "rodilla_max": 90,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "curl_femoral",
@@ -91,7 +94,8 @@
      ],
      "rodilla_max": 90,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "gemelos_pie",
@@ -99,7 +103,7 @@
       "Gemelos de pie en máquina",
       "Gemelos en prensa"
      ],
-     "series": 3,
+     "series": 2,
      "reps": [
       10,
       15
@@ -111,7 +115,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "pallof",
@@ -119,7 +124,7 @@
       "Pallof press en polea",
       "Plancha"
      ],
-     "series": 3,
+     "series": 2,
      "reps": [
       10,
       12
@@ -131,7 +136,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": "Repeticiones por lado (plancha: segundos ÷ 3)"
+     "nota": "Repeticiones por lado (plancha: segundos ÷ 3)",
+     "superserie": ""
     }
    ]
   },
@@ -161,7 +167,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": "Kg por mancuerna"
+     "nota": "Kg por mancuerna",
+     "superserie": ""
     },
     {
      "id": "remo_apoyado",
@@ -183,7 +190,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "jalon_neutro",
@@ -205,27 +213,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": ""
-    },
-    {
-     "id": "aperturas",
-     "variantes": [
-      "Aperturas en contractora",
-      "Cruce de poleas"
-     ],
-     "series": 3,
-     "reps": [
-      12,
-      15
-     ],
-     "rir": 1,
-     "incremento": 2.5,
-     "musculos": [
-      "pecho"
-     ],
-     "rodilla_max": 0,
-     "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "elevaciones",
@@ -246,7 +235,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": "Lento y controlado"
+     "nota": "Lento y controlado",
+     "superserie": ""
     },
     {
      "id": "curl_scott",
@@ -267,7 +257,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": "Superserie con el tríceps"
+     "nota": "Superserie con el tríceps",
+     "superserie": "triceps_polea"
     },
     {
      "id": "triceps_polea",
@@ -288,7 +279,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": "Superserie con el curl"
+     "nota": "Superserie con el curl",
+     "superserie": "curl_scott"
     }
    ]
   },
@@ -317,7 +309,8 @@
      ],
      "rodilla_max": 90,
      "sobre_cabeza": false,
-     "nota": "Kg en discos, sin contar la máquina"
+     "nota": "Kg en discos, sin contar la máquina",
+     "superserie": ""
     },
     {
      "id": "extension_cuadriceps",
@@ -337,7 +330,8 @@
      ],
      "rodilla_max": 90,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "subida_cajon",
@@ -345,7 +339,7 @@
       "Subida a cajón bajo (rodilla ≤ 90°)",
       "Zancada corta hacia atrás"
      ],
-     "series": 3,
+     "series": 2,
      "reps": [
       10,
       12
@@ -358,7 +352,8 @@
      ],
      "rodilla_max": 90,
      "sobre_cabeza": false,
-     "nota": "Repeticiones por pierna; kg por mancuerna"
+     "nota": "Repeticiones por pierna; kg por mancuerna",
+     "superserie": ""
     },
     {
      "id": "hiperextension",
@@ -380,7 +375,8 @@
      ],
      "rodilla_max": 30,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "abductores",
@@ -399,7 +395,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": "aductores"
     },
     {
      "id": "aductores",
@@ -418,14 +415,15 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": "abductores"
     },
     {
      "id": "gemelos_sentado",
      "variantes": [
       "Gemelos sentado"
      ],
-     "series": 3,
+     "series": 2,
      "reps": [
       12,
       15
@@ -437,7 +435,8 @@
      ],
      "rodilla_max": 90,
      "sobre_cabeza": false,
-     "nota": "Kg en discos, sin contar la máquina"
+     "nota": "Kg en discos, sin contar la máquina",
+     "superserie": ""
     }
    ]
   },
@@ -466,7 +465,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "dominadas",
@@ -487,7 +487,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": "Asistidas: kg de ayuda (bajar es progresar)"
+     "nota": "Asistidas: kg de ayuda (bajar es progresar)",
+     "superserie": ""
     },
     {
      "id": "press_hombro",
@@ -509,7 +510,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": true,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "remo_polea_baja",
@@ -530,7 +532,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "face_pull",
@@ -538,7 +541,7 @@
       "Face pull en polea",
       "Pájaros en contractora"
      ],
-     "series": 3,
+     "series": 2,
      "reps": [
       12,
       15
@@ -551,7 +554,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": ""
+     "nota": "",
+     "superserie": ""
     },
     {
      "id": "curl_martillo",
@@ -559,7 +563,7 @@
       "Curl martillo con mancuernas",
       "Curl martillo en polea con cuerda"
      ],
-     "series": 3,
+     "series": 2,
      "reps": [
       10,
       15
@@ -571,7 +575,8 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": "Superserie con el tríceps"
+     "nota": "Superserie con el tríceps",
+     "superserie": "jalon_triceps"
     },
     {
      "id": "jalon_triceps",
@@ -579,7 +584,7 @@
       "Jalón de tríceps en polea",
       "Extensión de tríceps con cuerda"
      ],
-     "series": 3,
+     "series": 2,
      "reps": [
       10,
       15
@@ -591,10 +596,11 @@
      ],
      "rodilla_max": 0,
      "sobre_cabeza": false,
-     "nota": "Superserie con el martillo"
+     "nota": "Superserie con el martillo",
+     "superserie": "curl_martillo"
     }
    ]
   }
  ],
- "calentamiento": "5-8 min de bici o remo suave (asma). Días de torso: rotación externa en polea 2×15 y face pull ligero 2×15 (manguito)."
+ "calentamiento": "5-8 min de bici o remo suave (asma). Días de torso, además: rotación externa en polea 2×15 y face pull ligero 2×15 (manguito)."
 }

@@ -45,7 +45,8 @@ OBLIGATORIAS = ["desayuno", "comida", "merienda", "cena"]
 
 # Tus preferencias. Se pueden cambiar en config.toml, sección [menu] (mismos nombres)
 PREFERENCIAS = {
-    "modelo": "gemini-flash-latest",
+    # Versión fija (no «latest»): así un cambio de Google no nos pasa a un modelo más caro sin decidirlo
+    "modelo": "gemini-3.8-flash",
     "razonamiento": "high",          # cuánto piensa Gemini al montar el menú (low, medium, high)
     "supermercados": ["Mercadona", "Lidl", "Dia", "Ahorramás"],
     "horario": {"desayuno": "8:00", "media_mañana": "11:00", "comida": "14:00", "merienda": "18:00",
@@ -72,6 +73,9 @@ PROHIBIDO = [r"lentejas?", r"jud[ií]as?(?!\s+verdes?)", r"alubias?", r"marisco"
 # Margen de cada día respecto al plan (proteína: mínimo -5 %, puede pasarse un poco)
 MARGEN = {"kcal": (0.05, 0.05), "proteina": (0.05, 0.15), "grasa": (0.15, 0.15), "hidratos": (0.15, 0.15)}
 CORRECCIONES = 2
+# Tope de tokens generados por llamada (razonamiento incluido): lo que más cuesta
+# Medido el 14/10/2026 con 3.8 Flash: búsqueda ~4 k (2,2 k + 1,8 k pensando); menú ~51 k (11 k + 40 k pensando)
+MAX_SALIDA = {"busqueda": 16384, "menu": 65536}
 
 
 class MenuError(Exception):
@@ -300,7 +304,8 @@ def montar(con: sqlite3.Connection, semana: date, plan: calorias.Propuesta, log=
     investigacion = ""
     try:
         log("Gemini: buscando productos…")
-        investigacion = generar(prefs["modelo"], prompt_busqueda(prefs, semana), buscar=True)
+        investigacion = generar(prefs["modelo"], prompt_busqueda(prefs, semana), buscar=True,
+                                max_salida=MAX_SALIDA["busqueda"])
     except GeminiError as e:
         log(f"Sin búsqueda de productos ({e}); sigo con la tabla.")
 
@@ -316,7 +321,8 @@ def montar(con: sqlite3.Connection, semana: date, plan: calorias.Propuesta, log=
                       "o cambia platos) y devuelve el menú completo:\n- " + "\n- ".join(errores))
         try:
             menu = json.loads(generar(prefs["modelo"], texto, esquema=esquema(),
-                                      razonamiento=prefs["razonamiento"], timeout=1200))
+                                      razonamiento=prefs["razonamiento"], max_salida=MAX_SALIDA["menu"],
+                                      timeout=1200))
         except (GeminiError, json.JSONDecodeError) as e:
             errores = [f"Respuesta no válida: {e}"]
             log(errores[0])

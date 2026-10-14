@@ -43,6 +43,14 @@ def nueva_pestana(s: AuthorizedSession, id_hoja: str, titulo: str, indice: int =
     return r["replies"][0]["addSheet"]["properties"]["sheetId"]
 
 
+def borrar_pestana(s: AuthorizedSession, id_hoja: str, titulo: str) -> bool:
+    hoja = pestanas(s, id_hoja).get(titulo)
+    if hoja is None:
+        return False
+    lote(s, id_hoja, [{"deleteSheet": {"sheetId": hoja}}])
+    return True
+
+
 def _rango(rango: str) -> str:
     return urllib.parse.quote(rango, safe="")
 
