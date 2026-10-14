@@ -450,17 +450,25 @@ def pdf(datos: dict, destino: Path) -> Path:
     return destino
 
 
-def imprimir(ruta: Path, impresora: str) -> None:
-    r = subprocess.run(["lp", "-d", impresora, "-o", "media=A4", "-o", "orientation-requested=4", str(ruta)],
-                       capture_output=True, text=True, check=False)
-    if r.returncode:
-        raise MenuError(f"No se pudo imprimir: {r.stderr.strip()}")
+def ordenes_impresion(ruta: Path, impresora: str, doble_cara: str = "short-edge") -> list[list[str]]:
+    """La semana en un folio (para la nevera) y los platos y la compra en otro, a doble cara. Las hojas
+    van apaisadas: con «short-edge» el reverso sale al derecho al girar el folio como un calendario."""
+    base = ["lp", "-d", impresora, "-o", "media=A4", "-o", "orientation-requested=4"]
+    return [base + ["-P", "1", "-o", "sides=one-sided", str(ruta)],
+            base + ["-P", "2-3", "-o", f"sides=two-sided-{doble_cara}", str(ruta)]]
 
 
-def impresora() -> str:
-    if CONFIG_FILE.exists():
-        return tomllib.loads(CONFIG_FILE.read_text()).get("impresora", {}).get("nombre_cups", "Brother")
-    return "Brother"
+def imprimir(ruta: Path, impresora: str, doble_cara: str = "short-edge") -> None:
+    for orden in ordenes_impresion(ruta, impresora, doble_cara):
+        r = subprocess.run(orden, capture_output=True, text=True, check=False)
+        if r.returncode:
+            raise MenuError(f"No se pudo imprimir: {r.stderr.strip()}")
+
+
+def impresora() -> tuple[str, str]:
+    """Nombre en CUPS y borde de giro de la doble cara (short-edge o long-edge, por si el reverso sale al revés)."""
+    conf = tomllib.loads(CONFIG_FILE.read_text()).get("impresora", {}) if CONFIG_FILE.exists() else {}
+    return conf.get("nombre_cups", "Brother"), conf.get("doble_cara", "short-edge")
 
 
 def main() -> int:
@@ -504,7 +512,7 @@ def main() -> int:
         ruta = pdf(datos_pdf(semana, plan, r, prefs), DATA_DIR / "pdf" / f"menu-{semana}.pdf")
         print(f"PDF: {ruta}")
         if args.imprimir:
-            imprimir(ruta, impresora())
+            imprimir(ruta, *impresora())
         if args.guardar:
             aviso = {"ia_corregido": " (Gemini lo corrigió tras la revisión)",
                      "repetido": " — ⚠️ repetido de la semana anterior: Gemini no dio uno válido"}.get(r["origen"], "")

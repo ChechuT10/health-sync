@@ -43,6 +43,7 @@ cardio_intenso = true             # false = solo cardio moderado (zona 2)
 
 [impresora]
 nombre_cups = "Brother"
+doble_cara = "short-edge"  # la hoja 2 y 3 del menú en un folio; si el reverso sale al revés, "long-edge"
 
 [ia]
 presupuesto_alerta_usd = 5

@@ -78,6 +78,15 @@ class Revision(unittest.TestCase):
         self.assertIn("NO_EXISTE", errores)
 
 
+class Impresion(unittest.TestCase):
+    def test_semana_sola_y_platos_con_compra_a_doble_cara(self):
+        uno, dos = m.ordenes_impresion(Path("/tmp/menu.pdf"), "Brother")
+        self.assertIn("sides=one-sided", uno)
+        self.assertEqual(uno[uno.index("-P") + 1], "1")
+        self.assertEqual(dos[dos.index("-P") + 1], "2-3")
+        self.assertIn("sides=two-sided-short-edge", dos)
+
+
 class Montar(unittest.TestCase):
     def setUp(self):
         self.con = conectar(Path(":memory:"))
