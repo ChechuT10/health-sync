@@ -635,9 +635,14 @@ def guardar_semana(con: sqlite3.Connection, p: dict, pestana: str | None, consej
     con.commit()
 
 
-def iniciar(con: sqlite3.Connection, pesos: Path | None, hoy: date, log=print, rehacer: bool = False) -> None:
-    semana = calorias.proximo_martes(hoy)
-    actual = bloque_en_vigor(con, semana)
+def iniciar(con: sqlite3.Connection, pesos: Path | None, hoy: date, log=print, rehacer: bool = False,
+            desde: date | None = None) -> date:
+    """Rutina base, pesos de partida y Sheet. Devuelve el martes en que empieza la rutina (por defecto, el
+    siguiente; con «desde», otro, p. ej. la semana en curso para empezar a apuntar ya)."""
+    semana = desde or calorias.proximo_martes(hoy)
+    if semana.weekday() != 1:
+        raise EntrenoError(f"La rutina empieza en martes ({semana:%d/%m} no lo es).")
+    actual = bloque_en_vigor(con, max(semana, calorias.proximo_martes(hoy)))
     if rehacer and actual:
         inicio, _, origen = actual
         if origen != "base" or con.execute("SELECT 1 FROM series WHERE semana >= ?", (inicio.isoformat(),)).fetchone():
