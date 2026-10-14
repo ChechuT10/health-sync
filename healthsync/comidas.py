@@ -202,10 +202,21 @@ def texto_estimacion(est: dict) -> str:
 # «Lo comido» para el gasto real y resumen mensual
 # --------------------------------------------------------------------------
 def kcal_por_dia(con: sqlite3.Connection, desde: date, hasta: date) -> dict[str, float]:
-    """Kcal registradas por día (solo días con alguna comida del plan o de fuera), entre desde y hasta incluidos."""
+    """Kcal registradas por día, entre desde y hasta incluidos. Solo días completos: los que cerró el trabajo
+    de las 23:30 con el menú (tienen la fila de los fijos); un día suelto con un par de fotos no cuenta."""
     filas = con.execute("SELECT fecha, sum(kcal) FROM comidas WHERE fecha >= ? AND fecha <= ? AND origen != 'saltada' "
+                        "AND fecha IN (SELECT fecha FROM comidas WHERE comida = 'fijos') "
                         "GROUP BY fecha", (desde.isoformat(), hasta.isoformat())).fetchall()
     return {f: k for f, k in filas if k}
+
+
+def hora_de(comida: str, ahora: datetime) -> str:
+    """Hora con la que se apunta una comida de fuera: la de esa comida si ya pasó (la foto del desayuno
+    mandada por la noche queda a las 8:00); si no, o si es extra, la de ahora."""
+    hora = menu.preferencias()["horario"].get(comida)
+    if hora and hora.zfill(5) <= ahora.strftime("%H:%M"):
+        return hora.zfill(5)
+    return ahora.strftime("%H:%M")
 
 
 def resumen_mes(con: sqlite3.Connection, anio: int, mes: int) -> str:

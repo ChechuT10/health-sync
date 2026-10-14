@@ -97,8 +97,15 @@ class Comidas(unittest.TestCase):
         c.guardar_fuera(self.con, MARTES + timedelta(days=8), "comida", EST, "14:30")
         r = c.resumen_mes(self.con, 2026, 10)
         self.assertIn("Comidas fuera: 1", r)
-        self.assertIn("Días registrados: 8", r)
-        self.assertEqual(len(c.kcal_por_dia(self.con, MARTES, MARTES + timedelta(days=30))), 8)
+        self.assertIn("Días registrados: 7", r)               # solo días completos
+        # El día suelto con solo una comida de fuera (sin cierre de las 23:30) no cuenta para el gasto real
+        self.assertEqual(len(c.kcal_por_dia(self.con, MARTES, MARTES + timedelta(days=30))), 7)
+
+    def test_hora_de_la_comida_de_fuera(self):
+        noche = __import__("datetime").datetime(2026, 10, 20, 22, 40)
+        self.assertEqual(c.hora_de("desayuno", noche), "08:00")
+        self.assertEqual(c.hora_de("extra", noche), "22:40")
+        self.assertEqual(c.hora_de("cena", noche.replace(hour=21)), "21:40")    # la cena (22:00) aún no ha llegado
 
 
 if __name__ == "__main__":

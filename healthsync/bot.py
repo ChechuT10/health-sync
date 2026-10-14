@@ -216,7 +216,7 @@ def cmd_sustituye(con, args: str):
     if c not in comidas.SUSTITUIBLES + ["extra"]:
         raise medidas.MedidaError("Elige una de las opciones de los botones")
     ahora = datetime.now(TZ)
-    _, error = comidas.guardar_fuera(con, ahora.date(), c, estimacion, ahora.strftime("%H:%M"))
+    _, error = comidas.guardar_fuera(con, ahora.date(), c, estimacion, comidas.hora_de(c, ahora))
     nombre, kcal = estimacion["descripcion"], estimacion["kcal"]
     estimacion = None
     destino = "como algo extra" if c == "extra" else f"en lugar de la {c.replace('_', ' ')} del menú"
