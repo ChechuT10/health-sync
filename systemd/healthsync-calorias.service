@@ -1,5 +1,5 @@
 [Unit]
-Description=Health Sync: calorías y macros de la semana
+Description=Health Sync: calorías y macros de la semana, y el menú (Gemini) impreso
 OnFailure=healthsync-aviso@%n.service
 
 [Service]
@@ -8,3 +8,6 @@ User=healthsync
 Group=healthsync
 WorkingDirectory=/opt/healthsync/app
 ExecStart=/opt/healthsync/venv/bin/python -m healthsync.calorias --guardar
+# Gemini tarda varios minutos (la Pi solo espera); si falla, avisa por Telegram y el plan de calorías ya está guardado
+ExecStart=/opt/healthsync/venv/bin/python -m healthsync.menu --guardar --imprimir
+TimeoutStartSec=45min

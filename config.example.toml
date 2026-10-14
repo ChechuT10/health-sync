@@ -16,10 +16,17 @@ grasa_objetivo_pct = 16    # % de grasa al que se quiere llegar
 # Los límites de seguridad (déficit máximo, suelo calórico, ritmo, pausas de dieta) NO se
 # configuran aquí: están fijos en healthsync/calorias.py para que no se puedan saltar sin querer.
 
-[comidas]
-comidas_dia_entreno = 5
-comidas_dia_descanso = 4
-excluir = []               # alimentos que no se incluyen nunca, por ejemplo ["lentejas"]
+# Menú semanal (lo monta Gemini). Todo es opcional: sin esta sección se usan los valores de
+# PREFERENCIAS en healthsync/menu.py. Gemini recibe esto y las calorías, nunca tu peso ni tu % de grasa.
+[menu]
+modelo = "gemini-flash-latest"   # Pro (3.1 preview) tarda demasiado; Flash busca y responde bien
+supermercados = ["Mercadona", "Lidl", "Dia", "Ahorramás"]
+dias_entreno = ["lunes", "martes", "jueves", "viernes"]
+hora_entreno = "18:00-19:00"
+# Lo que tomas cada día fuera de los platos (id de healthsync/alimentos.csv = gramos o ml)
+fijos = { leche_semi = 450, cafe = 150, creatina = 5 }
+fijos_texto = "3 cafés con leche al día (150 ml de leche semidesnatada cada uno) y 5 g de creatina"
+no_come = ["lentejas", "marisco"]
 
 [entrenamiento]
 dias_por_semana = 4
@@ -37,5 +44,4 @@ cardio_intenso = true             # false = solo cardio moderado (zona 2)
 nombre_cups = "Brother"
 
 [ia]
-modelo = "gemini-flash"    # nombre del modelo de la API de Gemini
 presupuesto_alerta_usd = 5

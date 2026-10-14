@@ -1,0 +1,1113 @@
+{
+ "resumen": "Menú semanal equilibrado de 1940 kcal netas en platos, con 155-171 g de proteína diaria, alta facilidad de táper, cocinado rápido en freidora de aire y microondas, y exactamente dos cenas de pescado.",
+ "alimentos": [
+  {
+   "id": "pan_integral",
+   "nombre": "Pan integral de barra",
+   "tienda": "Mercadona",
+   "estado": "tal cual",
+   "kcal": 245,
+   "proteina": 10,
+   "grasa": 3.5,
+   "hidratos": 41,
+   "id_tabla": "pan_integral",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "clara",
+   "nombre": "Claras de huevo pasteurizadas Hacendado",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 48,
+   "proteina": 11,
+   "grasa": 0.2,
+   "hidratos": 0.7,
+   "id_tabla": "clara",
+   "fuente": "Etiquetado nutricional Mercadona"
+  },
+  {
+   "id": "huevo",
+   "nombre": "Huevo fresco clase L",
+   "tienda": "Dia",
+   "estado": "crudo",
+   "kcal": 145,
+   "proteina": 12.5,
+   "grasa": 10,
+   "hidratos": 0.5,
+   "id_tabla": "huevo",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "aceite_oliva",
+   "nombre": "Aceite de oliva virgen extra",
+   "tienda": "Dia",
+   "estado": "tal cual",
+   "kcal": 900,
+   "proteina": 0,
+   "grasa": 100,
+   "hidratos": 0,
+   "id_tabla": "aceite_oliva",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "tomate",
+   "nombre": "Tomate de ensalada",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 20,
+   "proteina": 0.9,
+   "grasa": 0.2,
+   "hidratos": 3.5,
+   "id_tabla": "tomate",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "mandarina",
+   "nombre": "Mandarina de temporada",
+   "tienda": "Ahorramás",
+   "estado": "pelado",
+   "kcal": 45,
+   "proteina": 0.8,
+   "grasa": 0.3,
+   "hidratos": 9.5,
+   "id_tabla": "mandarina",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "avena",
+   "nombre": "Copos de avena suaves Crownfield",
+   "tienda": "Lidl",
+   "estado": "tal cual",
+   "kcal": 375,
+   "proteina": 13.5,
+   "grasa": 7,
+   "hidratos": 59,
+   "id_tabla": "avena",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "skyr",
+   "nombre": "Skyr natural Milbona",
+   "tienda": "Lidl",
+   "estado": "tal cual",
+   "kcal": 63,
+   "proteina": 11,
+   "grasa": 0.2,
+   "hidratos": 4,
+   "id_tabla": "skyr",
+   "fuente": "Etiquetado Milbona Lidl"
+  },
+  {
+   "id": "nueces",
+   "nombre": "Nueces peladas",
+   "tienda": "Mercadona",
+   "estado": "tal cual",
+   "kcal": 655,
+   "proteina": 15,
+   "grasa": 65,
+   "hidratos": 4,
+   "id_tabla": "nueces",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "manzana",
+   "nombre": "Manzana Fuji",
+   "tienda": "Ahorramás",
+   "estado": "tal cual",
+   "kcal": 55,
+   "proteina": 0.3,
+   "grasa": 0.2,
+   "hidratos": 12,
+   "id_tabla": "manzana",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "crema_cacahuete",
+   "nombre": "Crema de cacahuete 100 %",
+   "tienda": "Mercadona",
+   "estado": "tal cual",
+   "kcal": 600,
+   "proteina": 26,
+   "grasa": 49,
+   "hidratos": 10,
+   "id_tabla": "crema_cacahuete",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "proteina_polvo",
+   "nombre": "Proteína de suero aislada (whey isolate)",
+   "tienda": "Dia",
+   "estado": "tal cual",
+   "kcal": 370,
+   "proteina": 88,
+   "grasa": 1,
+   "hidratos": 2,
+   "id_tabla": "proteina_polvo",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "platano",
+   "nombre": "Plátano de Canarias",
+   "tienda": "Lidl",
+   "estado": "pelado",
+   "kcal": 95,
+   "proteina": 1.2,
+   "grasa": 0.3,
+   "hidratos": 21,
+   "id_tabla": "platano",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "tortitas_arroz",
+   "nombre": "Tortitas de arroz",
+   "tienda": "Mercadona",
+   "estado": "tal cual",
+   "kcal": 385,
+   "proteina": 8,
+   "grasa": 2.8,
+   "hidratos": 81,
+   "id_tabla": "tortitas_arroz",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "arroz_blanco",
+   "nombre": "Arroz blanco",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 355,
+   "proteina": 7,
+   "grasa": 0.6,
+   "hidratos": 78,
+   "id_tabla": "arroz_blanco",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "pollo_pechuga",
+   "nombre": "Pechuga de pollo limpia",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 110,
+   "proteina": 23,
+   "grasa": 1.5,
+   "hidratos": 0,
+   "id_tabla": "pollo_pechuga",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "calabacin",
+   "nombre": "Calabacín verde",
+   "tienda": "Lidl",
+   "estado": "crudo",
+   "kcal": 17,
+   "proteina": 1.2,
+   "grasa": 0.3,
+   "hidratos": 2.2,
+   "id_tabla": "calabacin",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "champinon",
+   "nombre": "Champiñón laminado limpio",
+   "tienda": "Ahorramás",
+   "estado": "crudo",
+   "kcal": 22,
+   "proteina": 3,
+   "grasa": 0.3,
+   "hidratos": 0.5,
+   "id_tabla": "champinon",
+   "fuente": "BEDCA / Etiquetado Ahorramás"
+  },
+  {
+   "id": "pasta",
+   "nombre": "Pasta tradicional",
+   "tienda": "Dia",
+   "estado": "crudo",
+   "kcal": 355,
+   "proteina": 12.5,
+   "grasa": 1.5,
+   "hidratos": 71,
+   "id_tabla": "pasta",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "ternera_picada",
+   "nombre": "Carne picada de vacuno 5 % grasa",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 125,
+   "proteina": 20,
+   "grasa": 5,
+   "hidratos": 0,
+   "id_tabla": "ternera_picada",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "tomate_triturado",
+   "nombre": "Tomate triturado natural",
+   "tienda": "Dia",
+   "estado": "tal cual",
+   "kcal": 30,
+   "proteina": 1.3,
+   "grasa": 0.2,
+   "hidratos": 5,
+   "id_tabla": "tomate_triturado",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "judias_verdes",
+   "nombre": "Judías verdes redondas ultracongeladas",
+   "tienda": "Lidl",
+   "estado": "crudo",
+   "kcal": 31,
+   "proteina": 1.9,
+   "grasa": 0.2,
+   "hidratos": 4.3,
+   "id_tabla": "judias_verdes",
+   "fuente": "Etiquetado Freshona Lidl"
+  },
+  {
+   "id": "garbanzos",
+   "nombre": "Garbanzos cocidos en conserva",
+   "tienda": "Dia",
+   "estado": "escurrido",
+   "kcal": 120,
+   "proteina": 7,
+   "grasa": 2.5,
+   "hidratos": 15,
+   "id_tabla": "garbanzos",
+   "fuente": "Etiquetado Dia"
+  },
+  {
+   "id": "pavo_pechuga",
+   "nombre": "Solomillo o pechuga de pavo fresco",
+   "tienda": "Lidl",
+   "estado": "crudo",
+   "kcal": 105,
+   "proteina": 24,
+   "grasa": 1,
+   "hidratos": 0,
+   "id_tabla": "pavo_pechuga",
+   "fuente": "Etiquetado Selección Lidl"
+  },
+  {
+   "id": "espinacas",
+   "nombre": "Espinacas frescas",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 25,
+   "proteina": 2.9,
+   "grasa": 0.4,
+   "hidratos": 1.4,
+   "id_tabla": "espinacas",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "cerdo_lomo",
+   "nombre": "Cinta de lomo de cerdo limpia corte fino",
+   "tienda": "Ahorramás",
+   "estado": "crudo",
+   "kcal": 150,
+   "proteina": 21,
+   "grasa": 7,
+   "hidratos": 0,
+   "id_tabla": "cerdo_lomo",
+   "fuente": "Ficha carnicería Ahorramás"
+  },
+  {
+   "id": "boniato",
+   "nombre": "Boniato fresco",
+   "tienda": "Lidl",
+   "estado": "crudo",
+   "kcal": 86,
+   "proteina": 1.6,
+   "grasa": 0.1,
+   "hidratos": 18,
+   "id_tabla": "boniato",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "lechuga",
+   "nombre": "Mezcla de ensalada variada",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 17,
+   "proteina": 1.4,
+   "grasa": 0.2,
+   "hidratos": 2,
+   "id_tabla": "lechuga",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "ternera_filete",
+   "nombre": "Filete de ternera magro",
+   "tienda": "Ahorramás",
+   "estado": "crudo",
+   "kcal": 125,
+   "proteina": 21.5,
+   "grasa": 4.5,
+   "hidratos": 0,
+   "id_tabla": "ternera_filete",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "patata",
+   "nombre": "Patata baby lavada para microondas",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 80,
+   "proteina": 2,
+   "grasa": 0.1,
+   "hidratos": 17,
+   "id_tabla": "patata",
+   "fuente": "Etiquetado Hacendado"
+  },
+  {
+   "id": "pimiento_verde",
+   "nombre": "Pimiento verde",
+   "tienda": "Mercadona",
+   "estado": "crudo",
+   "kcal": 20,
+   "proteina": 0.9,
+   "grasa": 0.2,
+   "hidratos": 3,
+   "id_tabla": "pimiento_verde",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "merluza",
+   "nombre": "Lomos de merluza sin piel ultracongelados",
+   "tienda": "Dia",
+   "estado": "crudo",
+   "kcal": 75,
+   "proteina": 16.5,
+   "grasa": 1,
+   "hidratos": 0,
+   "id_tabla": "merluza",
+   "fuente": "Etiquetado Dia"
+  },
+  {
+   "id": "brocoli",
+   "nombre": "Brócoli fresco",
+   "tienda": "Lidl",
+   "estado": "crudo",
+   "kcal": 34,
+   "proteina": 3,
+   "grasa": 0.4,
+   "hidratos": 4,
+   "id_tabla": "brocoli",
+   "fuente": "Tabla de referencia"
+  },
+  {
+   "id": "queso_batido",
+   "nombre": "Queso fresco batido 0 % m.g.",
+   "tienda": "Mercadona",
+   "estado": "tal cual",
+   "kcal": 46,
+   "proteina": 8,
+   "grasa": 0.2,
+   "hidratos": 3.5,
+   "id_tabla": "queso_batido",
+   "fuente": "Etiquetado Mercadona"
+  }
+ ],
+ "platos": [
+  {
+   "id": "D1",
+   "comida": "desayuno",
+   "nombre": "Tostada integral con revuelto de claras, huevo, tomate y mandarina",
+   "preparacion": "Tuesta el pan integral y ralla el tomate con el aceite. Cuaja el huevo con las claras en la sartén a fuego medio durante 3 minutos y sirve junto a la mandarina.",
+   "minutos": 8,
+   "ingredientes": [
+    {
+     "alimento": "pan_integral",
+     "gramos": 80,
+     "medida": "2 rebanadas medianas"
+    },
+    {
+     "alimento": "clara",
+     "gramos": 150,
+     "medida": "5 claras"
+    },
+    {
+     "alimento": "huevo",
+     "gramos": 60,
+     "medida": "1 unidad mediana"
+    },
+    {
+     "alimento": "aceite_oliva",
+     "gramos": 5,
+     "medida": "1 cucharadita de café"
+    },
+    {
+     "alimento": "tomate",
+     "gramos": 100,
+     "medida": "1 tomate pequeño"
+    },
+    {
+     "alimento": "mandarina",
+     "gramos": 100,
+     "medida": "1 pieza mediana"
+    }
+   ]
+  },
+  {
+   "id": "D2",
+   "comida": "desayuno",
+   "nombre": "Bowl de avena suave con skyr cremoso, manzana y nueces",
+   "preparacion": "Mezcla la avena con 50 ml de agua tibia o al microondas 1 minuto. Añade el skyr frío por encima y corona con la manzana cortada a dados y las nueces troceadas.",
+   "minutos": 5,
+   "ingredientes": [
+    {
+     "alimento": "avena",
+     "gramos": 50,
+     "medida": "5 cucharadas soperas"
+    },
+    {
+     "alimento": "skyr",
+     "gramos": 250,
+     "medida": "3/4 de tarrina"
+    },
+    {
+     "alimento": "nueces",
+     "gramos": 15,
+     "medida": "3-4 nueces enteras"
+    },
+    {
+     "alimento": "manzana",
+     "gramos": 100,
+     "medida": "1 manzana pequeña"
+    }
+   ]
+  },
+  {
+   "id": "D3",
+   "comida": "desayuno",
+   "nombre": "Tortitas esponjosas de avena y claras con crema de cacahuete y fruta",
+   "preparacion": "Tritura la avena con las claras y el huevo entero hasta lograr una masa homogénea. Haz 3-4 tortitas a la sartén vuelta y vuelta (1 minuto por lado), úntalas con crema de cacahuete y acompaña con la mandarina.",
+   "minutos": 12,
+   "ingredientes": [
+    {
+     "alimento": "avena",
+     "gramos": 50,
+     "medida": "5 cucharadas soperas"
+    },
+    {
+     "alimento": "clara",
+     "gramos": 200,
+     "medida": "6-7 claras"
+    },
+    {
+     "alimento": "huevo",
+     "gramos": 60,
+     "medida": "1 unidad mediana"
+    },
+    {
+     "alimento": "crema_cacahuete",
+     "gramos": 10,
+     "medida": "1 cucharadita de postre"
+    },
+    {
+     "alimento": "mandarina",
+     "gramos": 100,
+     "medida": "1 pieza mediana"
+    }
+   ]
+  },
+  {
+   "id": "M1",
+   "comida": "merienda",
+   "nombre": "Shake proteico pre-entreno con plátano y tortitas de arroz crujientes",
+   "preparacion": "Disuelve el aislado de proteína en 250 ml de agua fresca en un mezclador. Tómalo junto con el plátano y las tortitas de arroz crujientes para una digestión ultrarrápida y energía limpia.",
+   "minutos": 3,
+   "ingredientes": [
+    {
+     "alimento": "proteina_polvo",
+     "gramos": 30,
+     "medida": "1 cazo dosificador colmado"
+    },
+    {
+     "alimento": "platano",
+     "gramos": 120,
+     "medida": "1 plátano mediano"
+    },
+    {
+     "alimento": "tortitas_arroz",
+     "gramos": 20,
+     "medida": "2 tortitas"
+    }
+   ]
+  },
+  {
+   "id": "C1",
+   "comida": "comida",
+   "nombre": "Salteado express de pechuga de pollo con arroz, calabacín y champiñones",
+   "preparacion": "Saltea los tacos de pollo a fuego vivo con el aceite de oliva durante 4 minutos. Añade el calabacín en dados y los champiñones laminados hasta que doren, e incorpora el arroz cocido previamente.",
+   "minutos": 15,
+   "ingredientes": [
+    {
+     "alimento": "arroz_blanco",
+     "gramos": 60,
+     "medida": "1 vasito mediano en crudo"
+    },
+    {
+     "alimento": "pollo_pechuga",
+     "gramos": 180,
+     "medida": "1 pechuga grande"
+    },
+    {
+     "alimento": "calabacin",
+     "gramos": 150,
+     "medida": "1/2 calabacín grande"
+    },
+    {
+     "alimento": "champinon",
+     "gramos": 100,
+     "medida": "1 taza colmada de laminados"
+    },
+    {
+     "alimento": "aceite_oliva",
+     "gramos": 15,
+     "medida": "1 cucharada sopera y media"
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "comida": "comida",
+   "nombre": "Pasta boloñesa magra de ternera con judías verdes salteadas",
+   "preparacion": "Cuece la pasta 9 minutos mientras doras la carne picada con el aceite en una sartén. Agrega el tomate triturado y las judías verdes (previamente cocinadas 4 minutos al microondas) y mezcla con la pasta.",
+   "minutos": 14,
+   "ingredientes": [
+    {
+     "alimento": "pasta",
+     "gramos": 65,
+     "medida": "1 taza colmada en crudo"
+    },
+    {
+     "alimento": "ternera_picada",
+     "gramos": 160,
+     "medida": "1 porción individual"
+    },
+    {
+     "alimento": "tomate_triturado",
+     "gramos": 100,
+     "medida": "4 cucharadas soperas"
+    },
+    {
+     "alimento": "judias_verdes",
+     "gramos": 150,
+     "medida": "1 plato hondo"
+    },
+    {
+     "alimento": "aceite_oliva",
+     "gramos": 10,
+     "medida": "1 cucharada sopera rasa"
+    }
+   ]
+  },
+  {
+   "id": "C3",
+   "comida": "comida",
+   "nombre": "Garbanzos salteados con solomillo de pavo, espinacas y pan integral",
+   "preparacion": "Enjuaga y escurre los garbanzos. En una sartén con el aceite dora el pavo cortado en dados, añade las espinacas frescas que menguarán en 2 minutos y mezcla con los garbanzos, acompañando con el pan.",
+   "minutos": 10,
+   "ingredientes": [
+    {
+     "alimento": "garbanzos",
+     "gramos": 200,
+     "medida": "1/2 tarro escurrido"
+    },
+    {
+     "alimento": "pavo_pechuga",
+     "gramos": 140,
+     "medida": "1 solomillo mediano"
+    },
+    {
+     "alimento": "espinacas",
+     "gramos": 150,
+     "medida": "3 puñados grandes"
+    },
+    {
+     "alimento": "pan_integral",
+     "gramos": 40,
+     "medida": "1 rebanada gruesa"
+    },
+    {
+     "alimento": "aceite_oliva",
+     "gramos": 10,
+     "medida": "1 cucharada sopera rasa"
+    }
+   ]
+  },
+  {
+   "id": "N1",
+   "comida": "cena",
+   "nombre": "Lomo de cerdo a la plancha con bastones de boniato en airfryer y ensalada",
+   "preparacion": "Corta el boniato en bastones y cocínalo en freidora de aire a 195 ºC durante 14 minutos. Haz los filetes de lomo a la plancha 2 minutos por lado y sirve junto a la lechuga y el tomate aliñados con el aceite.",
+   "minutos": 16,
+   "ingredientes": [
+    {
+     "alimento": "cerdo_lomo",
+     "gramos": 170,
+     "medida": "3-4 filetes finos"
+    },
+    {
+     "alimento": "boniato",
+     "gramos": 260,
+     "medida": "1 boniato mediano"
+    },
+    {
+     "alimento": "lechuga",
+     "gramos": 100,
+     "medida": "1 bol mediano"
+    },
+    {
+     "alimento": "tomate",
+     "gramos": 100,
+     "medida": "1 tomate pequeño"
+    },
+    {
+     "alimento": "aceite_oliva",
+     "gramos": 10,
+     "medida": "1 cucharada sopera rasa"
+    }
+   ]
+  },
+  {
+   "id": "N2",
+   "comida": "cena",
+   "nombre": "Filete de ternera a la plancha con patatas baby y salteado de champiñones",
+   "preparacion": "Mete la bolsa de patatas baby al microondas 7 minutos. Mientras tanto, saltea los champiñones y el pimiento verde con el aceite, y cocina la ternera a fuego fuerte 1 minuto y medio por lado.",
+   "minutos": 12,
+   "ingredientes": [
+    {
+     "alimento": "ternera_filete",
+     "gramos": 170,
+     "medida": "2 filetes medianos"
+    },
+    {
+     "alimento": "patata",
+     "gramos": 280,
+     "medida": "4-5 patatitas baby"
+    },
+    {
+     "alimento": "pimiento_verde",
+     "gramos": 100,
+     "medida": "1 pimiento mediano"
+    },
+    {
+     "alimento": "champinon",
+     "gramos": 100,
+     "medida": "1 taza colmada"
+    },
+    {
+     "alimento": "aceite_oliva",
+     "gramos": 14,
+     "medida": "1 cucharada sopera colmada"
+    }
+   ]
+  },
+  {
+   "id": "N3",
+   "comida": "cena",
+   "nombre": "Lomos de merluza dorados con salsa ligera de yogur, patatas baby y brócoli",
+   "preparacion": "Cocina el brócoli y las patatas al microondas o vapor durante 6 minutos. Marca los lomos de merluza a la plancha con la mitad del aceite y prepara una salsa fría mezclando el queso batido con el resto del aceite, limón y perejil.",
+   "minutos": 14,
+   "ingredientes": [
+    {
+     "alimento": "merluza",
+     "gramos": 220,
+     "medida": "2 lomos medianos"
+    },
+    {
+     "alimento": "patata",
+     "gramos": 240,
+     "medida": "3-4 patatitas baby"
+    },
+    {
+     "alimento": "brocoli",
+     "gramos": 150,
+     "medida": "4 arbolitos medianos"
+    },
+    {
+     "alimento": "queso_batido",
+     "gramos": 80,
+     "medida": "3 cucharadas soperas"
+    },
+    {
+     "alimento": "aceite_oliva",
+     "gramos": 17,
+     "medida": "1 cucharada sopera y media"
+    }
+   ]
+  }
+ ],
+ "dias": [
+  {
+   "dia": "martes",
+   "tipo": "entreno",
+   "comidas": [
+    {
+     "comida": "desayuno",
+     "plato": "D1"
+    },
+    {
+     "comida": "comida",
+     "plato": "C1"
+    },
+    {
+     "comida": "merienda",
+     "plato": "M1"
+    },
+    {
+     "comida": "cena",
+     "plato": "N1"
+    }
+   ]
+  },
+  {
+   "dia": "miércoles",
+   "tipo": "descanso",
+   "comidas": [
+    {
+     "comida": "desayuno",
+     "plato": "D2"
+    },
+    {
+     "comida": "comida",
+     "plato": "C2"
+    },
+    {
+     "comida": "merienda",
+     "plato": "M1"
+    },
+    {
+     "comida": "cena",
+     "plato": "N2"
+    }
+   ]
+  },
+  {
+   "dia": "jueves",
+   "tipo": "entreno",
+   "comidas": [
+    {
+     "comida": "desayuno",
+     "plato": "D1"
+    },
+    {
+     "comida": "comida",
+     "plato": "C3"
+    },
+    {
+     "comida": "merienda",
+     "plato": "M1"
+    },
+    {
+     "comida": "cena",
+     "plato": "N1"
+    }
+   ]
+  },
+  {
+   "dia": "viernes",
+   "tipo": "entreno",
+   "comidas": [
+    {
+     "comida": "desayuno",
+     "plato": "D2"
+    },
+    {
+     "comida": "comida",
+     "plato": "C1"
+    },
+    {
+     "comida": "merienda",
+     "plato": "M1"
+    },
+    {
+     "comida": "cena",
+     "plato": "N3"
+    }
+   ]
+  },
+  {
+   "dia": "sábado",
+   "tipo": "descanso",
+   "comidas": [
+    {
+     "comida": "desayuno",
+     "plato": "D3"
+    },
+    {
+     "comida": "comida",
+     "plato": "C2"
+    },
+    {
+     "comida": "merienda",
+     "plato": "M1"
+    },
+    {
+     "comida": "cena",
+     "plato": "N1"
+    }
+   ]
+  },
+  {
+   "dia": "domingo",
+   "tipo": "descanso",
+   "comidas": [
+    {
+     "comida": "desayuno",
+     "plato": "D3"
+    },
+    {
+     "comida": "comida",
+     "plato": "C1"
+    },
+    {
+     "comida": "merienda",
+     "plato": "M1"
+    },
+    {
+     "comida": "cena",
+     "plato": "N2"
+    }
+   ]
+  },
+  {
+   "dia": "lunes",
+   "tipo": "entreno",
+   "comidas": [
+    {
+     "comida": "desayuno",
+     "plato": "D1"
+    },
+    {
+     "comida": "comida",
+     "plato": "C3"
+    },
+    {
+     "comida": "merienda",
+     "plato": "M1"
+    },
+    {
+     "comida": "cena",
+     "plato": "N3"
+    }
+   ]
+  }
+ ],
+ "compra": [
+  {
+   "producto": "Leche semidesnatada (para los cafés diarios)",
+   "cantidad": "4 briks de 1 L",
+   "tienda": "Mercadona",
+   "seccion": "Lácteos"
+  },
+  {
+   "producto": "Claras de huevo pasteurizadas Hacendado",
+   "cantidad": "1 botella de 1 L",
+   "tienda": "Mercadona",
+   "seccion": "Huevos y lácteos"
+  },
+  {
+   "producto": "Huevos camperos o clase L",
+   "cantidad": "1 docena",
+   "tienda": "Dia",
+   "seccion": "Huevos"
+  },
+  {
+   "producto": "Skyr natural Milbona",
+   "cantidad": "2 tarrinas de 350 g",
+   "tienda": "Lidl",
+   "seccion": "Lácteos refrigerados"
+  },
+  {
+   "producto": "Queso fresco batido 0 % Hacendado",
+   "cantidad": "1 tarrina de 500 g",
+   "tienda": "Mercadona",
+   "seccion": "Lácteos refrigerados"
+  },
+  {
+   "producto": "Pechuga de pollo entera o fileteada",
+   "cantidad": "1 bandeja de 600 g",
+   "tienda": "Mercadona",
+   "seccion": "Carnicería"
+  },
+  {
+   "producto": "Carne picada de vacuno 5 % grasa",
+   "cantidad": "1 bandeja de 400 g",
+   "tienda": "Mercadona",
+   "seccion": "Carnicería"
+  },
+  {
+   "producto": "Solomillo de pavo fresco Selección",
+   "cantidad": "1 bandeja de 450 g",
+   "tienda": "Lidl",
+   "seccion": "Carnicería"
+  },
+  {
+   "producto": "Cinta de lomo de cerdo extrafina limpia",
+   "cantidad": "1 bandeja de 550 g",
+   "tienda": "Ahorramás",
+   "seccion": "Carnicería"
+  },
+  {
+   "producto": "Filetes de ternera magra corte fino",
+   "cantidad": "1 bandeja de 400 g",
+   "tienda": "Ahorramás",
+   "seccion": "Carnicería"
+  },
+  {
+   "producto": "Lomos de merluza sin piel ultracongelados",
+   "cantidad": "1 bolsa de 500 g",
+   "tienda": "Dia",
+   "seccion": "Congelados"
+  },
+  {
+   "producto": "Judías verdes redondas ultracongeladas Freshona",
+   "cantidad": "1 bolsa de 1 kg",
+   "tienda": "Lidl",
+   "seccion": "Congelados"
+  },
+  {
+   "producto": "Garbanzos cocidos en frasco",
+   "cantidad": "1 tarro de 400 g (peso escurrido)",
+   "tienda": "Dia",
+   "seccion": "Conservas vegetales"
+  },
+  {
+   "producto": "Tomate triturado natural en lata o brik",
+   "cantidad": "1 lata o brik de 400 g",
+   "tienda": "Dia",
+   "seccion": "Conservas vegetales"
+  },
+  {
+   "producto": "Patata baby lavada para microondas (bolsa vapor)",
+   "cantidad": "3 bolsas de 400 g",
+   "tienda": "Mercadona",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Boniato fresco",
+   "cantidad": "3 piezas medianas (~900 g)",
+   "tienda": "Lidl",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Brócoli fresco",
+   "cantidad": "1 pieza (~500 g)",
+   "tienda": "Lidl",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Calabacín verde",
+   "cantidad": "2 piezas medianas (~500 g)",
+   "tienda": "Lidl",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Champiñón laminado limpio",
+   "cantidad": "2 bandejas de 300 g",
+   "tienda": "Ahorramás",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Espinacas frescas en bolsa",
+   "cantidad": "1 bolsa grande de 300 g",
+   "tienda": "Mercadona",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Pimiento verde",
+   "cantidad": "2 unidades medianas",
+   "tienda": "Mercadona",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Tomate de ensalada",
+   "cantidad": "1 malla de 1 kg",
+   "tienda": "Mercadona",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Mezcla de lechugas o ensalada variada",
+   "cantidad": "2 bolsas de 150 g",
+   "tienda": "Mercadona",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Plátano de Canarias",
+   "cantidad": "1 racimo (7-8 unidades, ~1,3 kg)",
+   "tienda": "Lidl",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Mandarinas tempranas",
+   "cantidad": "1 malla de 1 kg",
+   "tienda": "Ahorramás",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Manzana Fuji",
+   "cantidad": "2-3 unidades (~400 g)",
+   "tienda": "Ahorramás",
+   "seccion": "Frutería y verduras"
+  },
+  {
+   "producto": "Pan integral de barra 100 %",
+   "cantidad": "1 barra fresca (~350 g)",
+   "tienda": "Mercadona",
+   "seccion": "Panadería"
+  },
+  {
+   "producto": "Copos de avena suaves integrales Crownfield",
+   "cantidad": "1 paquete de 500 g",
+   "tienda": "Lidl",
+   "seccion": "Cereales y legumbres"
+  },
+  {
+   "producto": "Tortitas de arroz simples",
+   "cantidad": "1 paquete de 4 packs individuales",
+   "tienda": "Mercadona",
+   "seccion": "Dietética y cereales"
+  },
+  {
+   "producto": "Arroz blanco redondo o largo",
+   "cantidad": "1 paquete de 1 kg",
+   "tienda": "Mercadona",
+   "seccion": "Arroces y pastas"
+  },
+  {
+   "producto": "Pasta tradicional (macarrones o plumas)",
+   "cantidad": "1 paquete de 500 g",
+   "tienda": "Dia",
+   "seccion": "Arroces y pastas"
+  },
+  {
+   "producto": "Nueces peladas naturales",
+   "cantidad": "1 bolsa de 150 g",
+   "tienda": "Mercadona",
+   "seccion": "Frutos secos"
+  },
+  {
+   "producto": "Crema de cacahuete 100 % cacahuete",
+   "cantidad": "1 tarro de 500 g",
+   "tienda": "Mercadona",
+   "seccion": "Cremas y untables"
+  },
+  {
+   "producto": "Aceite de oliva virgen extra",
+   "cantidad": "1 botella de 1 L",
+   "tienda": "Dia",
+   "seccion": "Aceites"
+  }
+ ],
+ "consejos": [
+  "Cocinado en lote el martes tras la compra: Hierve el arroz y la pasta para los primeros 3 días y guárdalos en recipientes herméticos de vidrio en la nevera; esto genera almidón resistente y ahorra 15 minutos en cada comida.",
+  "Bolsas de patata al microondas: Las bolsas de patatas baby para microondas de Mercadona son un recurso excepcional; se cocinan al vapor dentro de su propia bolsa en 7 minutos sin ensuciar nada.",
+  "Uso inteligente de la freidora de aire: Corta los boniatos en bastones de grosor uniforme con un toque de sal y unas gotas de AOVE; en 14-16 minutos a 195 ºC quedan crujientes por fuera y tiernos por dentro.",
+  "Conservación de las proteínas: Si compras toda la carne fresca el martes, congela en porciones la ternera y el pavo destinados al fin de semana y al lunes, y descongélalos lentamente en la nevera la noche previa a su consumo."
+ ]
+}

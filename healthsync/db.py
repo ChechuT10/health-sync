@@ -120,6 +120,16 @@ CREATE TABLE IF NOT EXISTS plan_semana (
     creado             TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Menú de cada semana: lo monta Gemini; healthsync.menu solo comprueba que cuadra
+CREATE TABLE IF NOT EXISTS menu_semana (
+    semana         TEXT PRIMARY KEY,  -- martes en que empieza, como plan_semana
+    menu           TEXT NOT NULL,     -- JSON tal como lo devolvió Gemini
+    investigacion  TEXT,              -- lo que encontró Gemini buscando productos esa semana
+    revision       TEXT,              -- totales por día calculados por la Pi (JSON)
+    origen         TEXT NOT NULL,     -- ia, ia_corregido (tras devolverle errores) o repetido
+    creado         TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Valores sueltos del sistema (p. ej. el último mensaje leído por el bot)
 CREATE TABLE IF NOT EXISTS estado (
     clave  TEXT PRIMARY KEY,

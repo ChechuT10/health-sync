@@ -4,7 +4,7 @@
 
 Health Sync es un pipeline de datos personales que corre en una Raspberry Pi. Descarga lo que registran el reloj y el móvil en **Google Health**, calcula con reglas deterministas cuánto comer y cuánto entrenar, y cada semana genera un menú y una rutina. La IA (API de Gemini) solo redacta; los números los pone el código.
 
-> 🚧 **En construcción.** Fase 0 completada. Fase 1 casi lista: sincronización, bot de Telegram y calculadora de calorías funcionando en la Raspberry; falta el menú semanal. Ver la [hoja de ruta](#hoja-de-ruta).
+> 🚧 **En construcción.** Fase 0 completada. Fase 1 lista: sincronización, bot de Telegram, calculadora de calorías y menú semanal con Gemini (revisado por la Pi e impreso los lunes). Ver la [hoja de ruta](#hoja-de-ruta).
 >
 > 🌐 Página del proyecto: **[chechut10.github.io/health-sync](https://chechut10.github.io/health-sync/)**
 
@@ -95,7 +95,8 @@ sudo cp systemd/healthsync-bot.service systemd/healthsync-recordatorio.* /etc/sy
 sudo systemctl daemon-reload
 sudo systemctl enable --now healthsync-bot.service healthsync-recordatorio.timer
 
-# 9. Plan de calorías cada lunes a las 10:00, para el martes-lunes siguiente (se manda por Telegram)
+# 9. Cada lunes a las 10:00: plan de calorías para el martes-lunes siguiente y menú con Gemini,
+#    impreso y por Telegram (antes: clave de Gemini y Typst, ver docs/menu.md)
 sudo cp systemd/healthsync-calorias.* /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now healthsync-calorias.timer
@@ -119,6 +120,8 @@ Solo responde a tu chat. Cada medida se guarda en la Raspberry y se escribe en G
 | `/peso 99,4` | Anota el peso y lo compara con el anterior |
 | `/medidas cintura 102 cuello 41` | Calcula el % de grasa con el método de la Marina de EE. UU. (admite `peso 99,4`) |
 | `/calorias` | Calorías y macros de la semana, con el porqué |
+| `/hoy` | El menú de hoy |
+| `/compra` | La lista de la compra de la semana |
 | `/estado` | Última sincronización, último peso y resumen de 7 días |
 
 Los comandos salen en el botón **Menú** de Telegram y al escribir `/` (el bot los registra con `setMyCommands` al arrancar). Sin números, `/peso` y `/medidas` te los preguntan.
@@ -136,7 +139,7 @@ python3 -m unittest      # desde la raíz del repositorio; solo usa la bibliotec
 ## Hoja de ruta
 
 - [x] **Fase 0. Validación:** acceso a la API, OAuth permanente, Raspberry sin pantalla, impresión en red, descarga de todos los tipos de dato
-- [ ] **Fase 1. Producto mínimo:** ~~SQLite, sincronización cada 4 h, avisos de fallo, bot de Telegram para el peso y las medidas, cálculo de calorías con límites, tabla de alimentos~~ ✓; falta el menú validado e impreso
+- [ ] **Fase 1. Producto mínimo:** ~~SQLite, sincronización cada 4 h, avisos de fallo, bot de Telegram para el peso y las medidas, cálculo de calorías con límites, tabla de alimentos, menú con Gemini revisado e impreso~~ ✓ ([docs/menu.md](docs/menu.md))
 - [ ] **Fase 2. Entrenamiento:** rutina en Google Sheets, lectura de series y progresión según la recuperación
 - [ ] **Fase 3. Nutrición automática:** comidas escritas en Google Health y estimación por foto
 - [ ] **Fase 4. Robustez:** gráficas de tendencia, pausas de dieta y descargas automáticas

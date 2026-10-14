@@ -54,6 +54,14 @@ apt-get install -y \
   ufw
 ok "Paquetes instalados"
 
+# Typst (PDF del menú): binario oficial para ARM64, no está en los repositorios de Debian
+TYPST_VERSION=0.15.1
+if ! typst --version 2>/dev/null | grep -q "$TYPST_VERSION"; then
+  curl -fsSL "https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-aarch64-unknown-linux-musl.tar.xz" \
+    | tar -xJ -C /usr/local/bin --strip-components=1 typst-aarch64-unknown-linux-musl/typst
+fi
+ok "Typst $(typst --version | cut -d' ' -f2)"
+
 # --- 3. Actualizaciones de seguridad automáticas ---------------------------
 paso "Actualizaciones de seguridad automáticas"
 cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'

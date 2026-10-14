@@ -39,6 +39,26 @@ def enviar(texto: str) -> None:
     _api("sendMessage", chat_id=CHAT_FILE.read_text().strip(), text=texto[:4000])
 
 
+
+def enviar_archivo(ruta, texto: str = "") -> None:
+    """Manda un archivo (el PDF del menú) a tu chat, con un pie de hasta 1024 caracteres."""
+    import uuid
+    from pathlib import Path
+    ruta = Path(ruta)
+    limite = uuid.uuid4().hex
+    campos = {"chat_id": CHAT_FILE.read_text().strip(), "caption": texto[:1000]}
+    cuerpo = b"".join(f"--{limite}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n".encode()
+                      for k, v in campos.items())
+    cuerpo += (f"--{limite}\r\nContent-Disposition: form-data; name=\"document\"; filename=\"{ruta.name}\"\r\n"
+               f"Content-Type: application/pdf\r\n\r\n").encode() + ruta.read_bytes() + f"\r\n--{limite}--\r\n".encode()
+    token = TOKEN_FILE.read_text().strip()
+    pet = urllib.request.Request(f"https://api.telegram.org/bot{token}/sendDocument", cuerpo,
+                                 headers={"Content-Type": f"multipart/form-data; boundary={limite}"})
+    with urllib.request.urlopen(pet, timeout=60) as r:
+        res = json.load(r)
+    if not res.get("ok"):
+        raise RuntimeError(f"Telegram sendDocument: {res.get('description')}")
+
 def guardar_chat_id() -> int:
     chats = {}
     for u in _api("getUpdates"):

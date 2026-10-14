@@ -25,6 +25,8 @@ AYUDA = """Comandos de Health Sync:
 /peso 99,4 — anota tu peso (kg)
 /medidas cintura 102 cuello 41 — calcula tu % de grasa (método de la Marina); puedes añadir «peso 99,4»
 /calorias — calorías y macros de esta semana, y por qué
+/hoy — el menú de hoy
+/compra — la lista de la compra de la semana
 /estado — última sincronización, último peso y la semana
 /ayuda — esta ayuda
 
@@ -119,7 +121,38 @@ def cmd_calorias(con, _args: str) -> str:
     return calorias.texto(pr) + "\n\n(Propuesta: el plan se fija el lunes a las 10:00 y va de martes a lunes.)"
 
 
-COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado, "/calorias": cmd_calorias}
+def _menu_en_vigor(con, hoy: date, siguiente: bool = False):
+    """Menú que se está siguiendo hoy; con siguiente=True, el lunes el de la semana que empieza mañana."""
+    from . import calorias, menu
+    semanas = [calorias.martes_en_vigor(hoy)]
+    if siguiente and hoy.weekday() == 0:
+        semanas.insert(0, calorias.proximo_martes(hoy))
+    for s in semanas:
+        r = menu.cargar(con, s)
+        if r is not None:
+            return r
+    return None
+
+
+def cmd_hoy(con, _args: str) -> str:
+    from . import menu
+    hoy = datetime.now(TZ).date()
+    r = _menu_en_vigor(con, hoy)
+    if r is None:
+        return "Aún no hay menú para esta semana: sale el lunes a las 10:00, con las calorías."
+    return menu.texto_dia(r, menu.DIAS[(hoy.weekday() - 1) % 7])
+
+
+def cmd_compra(con, _args: str) -> str:
+    from . import menu
+    r = _menu_en_vigor(con, datetime.now(TZ).date(), siguiente=True)
+    if r is None:
+        return "Aún no hay menú: la lista de la compra sale el lunes a las 10:00."
+    return menu.texto_compra(r)
+
+
+COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado, "/calorias": cmd_calorias,
+            "/hoy": cmd_hoy, "/compra": cmd_compra}
 
 
 # Lista que Telegram enseña al escribir «/» y en el botón Menú
@@ -127,6 +160,8 @@ MENU = [
     ("peso", "Anotar tu peso"),
     ("medidas", "Cintura y cuello → % de grasa"),
     ("calorias", "Calorías y macros de esta semana"),
+    ("hoy", "El menú de hoy"),
+    ("compra", "Lista de la compra de la semana"),
     ("estado", "Última sincronización, peso y semana"),
     ("ayuda", "Comandos y cómo medirte"),
 ]
