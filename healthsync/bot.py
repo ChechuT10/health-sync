@@ -285,7 +285,7 @@ def atender(con: sqlite3.Connection, texto: str):
     texto = texto.strip()
     if texto.startswith("/"):
         orden, _, args = texto.partition(" ")
-        orden = orden.split("@")[0].lower()     # /peso@jt_salud_pi_bot
+        orden = orden.split("@")[0].lower()     # /peso@nombre_del_bot
         pendiente = None
     elif pendiente:                              # respuesta a una pregunta del bot
         orden, args = pendiente, texto
@@ -305,6 +305,28 @@ def atender(con: sqlite3.Connection, texto: str):
             return f"❌ {e}" + ("\nPrueba otra vez o toca otro comando." if pendiente else "")
         return respuesta
     return "No te entiendo. Toca el botón Menú o escribe /ayuda."
+
+
+# ---- Desconocidos: el bot solo atiende a tu cuenta (secrets/telegram_chat_id), desde cualquier dispositivo ----
+AVALANCHA = 30                              # mensajes ajenos en una hora que disparan un aviso
+avisados: dict[str, float] = {}             # cuenta ajena -> último aviso (uno al día por cuenta)
+ajenos: list[float] = []                    # instantes de los últimos mensajes ajenos
+
+
+def desconocido(msg: dict, ahora: float) -> str | None:
+    """Mensaje de otra cuenta: no se contesta ni se procesa. Devuelve el aviso para ti, si toca mandarlo."""
+    global ajenos
+    ajenos = [t for t in ajenos if ahora - t < 3600] + [ahora]
+    quien = msg.get("from") or msg.get("chat") or {}
+    clave = str(quien.get("id"))
+    nombre = " ".join(x for x in (quien.get("first_name"), f"@{quien['username']}" if quien.get("username") else "") if x)
+    if len(ajenos) == AVALANCHA:
+        return (f"🚫 Avalancha: {AVALANCHA} mensajes de otras cuentas en una hora. Se siguen ignorando sin gastar "
+                "nada; si continúa, puedes cambiar el token del bot en @BotFather.")
+    if clave not in avisados or ahora - avisados[clave] > 86400:
+        avisados[clave] = ahora
+        return f"⚠️ Otra cuenta ha escrito al bot ({nombre or 'sin nombre'}, id {clave}). No se le contesta."
+    return None
 
 
 def bucle() -> None:
@@ -329,8 +351,14 @@ def bucle() -> None:
         for u in updates:
             offset = u["update_id"] + 1
             msg = u.get("message") or {}
-            if (msg.get("chat") or {}).get("id") != mi_chat or not (msg.get("text") or msg.get("photo")):
-                continue                     # solo tu chat, y solo texto o fotos
+            if (msg.get("chat") or {}).get("id") != mi_chat:
+                aviso = desconocido(msg, time.time())   # ni respuesta, ni descargas, ni Gemini
+                if aviso:
+                    print(aviso, flush=True)
+                    telegram.enviar(aviso)
+                continue
+            if not (msg.get("text") or msg.get("photo")):
+                continue                     # solo texto o fotos
             try:
                 if msg.get("photo"):
                     telegram.enviar("📸 Recibida, la estoy mirando…")

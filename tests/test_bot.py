@@ -33,7 +33,23 @@ class Conversacion(unittest.TestCase):
         self.assertIsNone(bot.pendiente)
 
     def test_con_argumentos_no_pregunta(self):
-        self.assertEqual(bot.atender(self.con, "/peso@jt_salud_pi_bot 100"), "peso 100")
+        self.assertEqual(bot.atender(self.con, "/peso@nombre_del_bot 100"), "peso 100")
+
+
+class Desconocidos(unittest.TestCase):
+    def setUp(self):
+        bot.avisados.clear()
+        bot.ajenos.clear()
+
+    def test_un_aviso_por_cuenta_y_dia(self):
+        msg = {"from": {"id": 42, "first_name": "Pepe", "username": "pepe"}, "chat": {"id": 42}}
+        self.assertIn("Pepe @pepe", bot.desconocido(msg, 1000))
+        self.assertIsNone(bot.desconocido(msg, 2000))
+        self.assertIsNotNone(bot.desconocido(msg, 1000 + 86401))
+
+    def test_avalancha_un_solo_aviso(self):
+        avisos = [bot.desconocido({"from": {"id": i}}, 1000 + i) for i in range(100)]
+        self.assertEqual(sum(1 for a in avisos if a and "Avalancha" in a), 1)
 
 
 class AvisoPesarse(unittest.TestCase):
