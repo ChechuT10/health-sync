@@ -4,6 +4,7 @@ from __future__ import annotations
 import time
 from datetime import date, timedelta
 
+import requests
 from google.auth.transport.requests import AuthorizedSession, Request
 from google.oauth2.credentials import Credentials
 
@@ -35,8 +36,21 @@ def session(token: Path = TOKEN_FILE) -> AuthorizedSession:
 
 
 def request(s: AuthorizedSession, method: str, url: str, **kw) -> dict:
+    # Cortes de red y timeouts: se reintentan las peticiones idempotentes. Un POST solo si no llegó
+    # a conectar (si no, podría duplicar una comida o una pestaña). Como mucho 3 intentos: cada
+    # timeout son 60 s.
+    reintentables = ((requests.ConnectionError, requests.Timeout) if method.upper() != "POST"
+                     else (requests.ConnectTimeout,))
+    fallos_red = 0
     for intento in range(5):
-        r = s.request(method, url, timeout=60, **kw)
+        try:
+            r = s.request(method, url, timeout=60, **kw)
+        except reintentables:
+            fallos_red += 1
+            if fallos_red == 3:
+                raise
+            time.sleep(2 ** intento)
+            continue
         if r.status_code in (429, 500, 502, 503, 504):
             time.sleep(2 ** intento)
             continue
