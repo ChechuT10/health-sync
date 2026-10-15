@@ -28,6 +28,7 @@ AYUDA = """Comandos de Health Sync:
 /hoy — el menú de hoy
 /compra — la lista de la compra de la semana
 /entreno — la sesión de gimnasio de hoy (o la siguiente)
+/analisis — valoración de tu último entreno (Sheet + reloj)
 /fuera pizza mediana y una caña — comida de fuera de casa (o mándame una foto)
 /saltar merienda — una comida del menú que no hiciste hoy
 /estado — última sincronización, último peso y la semana
@@ -169,6 +170,12 @@ def cmd_entreno(con, _args: str) -> str:
     return "Aún no hay plan de gimnasio: sale el lunes a las 10:00."
 
 
+def cmd_analisis(con, _args: str) -> str:
+    from . import analisis
+    return analisis.ultimo(con) or ("Aún no hay ningún análisis. Llega solo por aquí unas horas después de "
+                                    "entrenar, cuando el reloj ha guardado la sesión y la tienes apuntada en el Sheet.")
+
+
 # ---- Comidas de fuera y saltadas ----
 OPCIONES_COMIDA = ["Desayuno", "Media mañana", "Comida", "Merienda", "Cena", "Extra", "Corregir", "Cancelar"]
 estimacion: dict | None = None          # comida de fuera esperando a que digas qué sustituye
@@ -252,7 +259,8 @@ def cmd_saltar(con, args: str) -> str:
 
 
 COMANDOS = {"/peso": cmd_peso, "/medidas": cmd_medidas, "/estado": cmd_estado, "/calorias": cmd_calorias,
-            "/hoy": cmd_hoy, "/compra": cmd_compra, "/entreno": cmd_entreno, "/fuera": cmd_fuera,
+            "/hoy": cmd_hoy, "/compra": cmd_compra, "/entreno": cmd_entreno, "/analisis": cmd_analisis,
+            "/fuera": cmd_fuera,
             "/saltar": cmd_saltar, "/sustituye": cmd_sustituye, "/corregir": cmd_corregir}
 
 
@@ -264,6 +272,7 @@ MENU = [
     ("hoy", "El menú de hoy"),
     ("compra", "Lista de la compra de la semana"),
     ("entreno", "Sesión de gimnasio de hoy"),
+    ("analisis", "Valoración de tu último entreno"),
     ("fuera", "Comida de fuera (o manda una foto)"),
     ("saltar", "Una comida del menú que no hiciste"),
     ("estado", "Última sincronización, peso y semana"),

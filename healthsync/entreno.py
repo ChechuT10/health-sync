@@ -14,6 +14,7 @@ Uso (como usuario healthsync, desde /opt/healthsync/app):
   python -m healthsync.entreno                        # enseña el plan de la semana que viene
   python -m healthsync.entreno --guardar              # lunes: plan, pestaña nueva, consejos y Telegram
   python -m healthsync.entreno --leer                 # cada 4 h (con la sincronización): lee el Sheet
+                                                      # y analiza las sesiones terminadas (healthsync.analisis)
 """
 from __future__ import annotations
 
@@ -75,6 +76,10 @@ def minutos(dia: dict) -> float:
         total += t
     return total
 MAX_SALIDA_RUTINA = 49152   # medido el 14/10/2026: ~32 k (2,9 k + 29 k pensando)
+# Ajuste de cada lunes (solo para la semana que empieza): como mucho tantos cambios de estructura
+# (ejercicio que entra o sale; series, repeticiones, RIR, variantes o superserie de uno que sigue)
+MAX_CAMBIOS_SEMANA = 3
+DESCANSO_S = (45, 300)      # descanso recomendado entre series, si lo hay
 
 
 class EntrenoError(Exception):
@@ -141,6 +146,8 @@ def validar_rutina(rutina: dict) -> list[str]:
                 errores.append(f"{nombre}: series, repeticiones o RIR fuera de rango.")
             if not 0 < e.get("incremento", 0) <= 10:
                 errores.append(f"{nombre}: incremento de peso no válido.")
+            if e.get("descanso_s") and not DESCANSO_S[0] <= e["descanso_s"] <= DESCANSO_S[1]:
+                errores.append(f"{nombre}: descanso de {e['descanso_s']} s (entre {DESCANSO_S[0]} y {DESCANSO_S[1]}).")
             if e.get("sobre_cabeza"):
                 sobre_cabeza += e.get("series", 0)
             for i, musc in enumerate(e.get("musculos") or []):
@@ -254,15 +261,47 @@ def recuperacion(con: sqlite3.Connection, hoy: date) -> tuple[str, str]:
 # --------------------------------------------------------------------------
 # Plan de la semana
 # --------------------------------------------------------------------------
-def plan(con: sqlite3.Connection, semana: date, hoy: date, elegidas: dict[str, str] | None = None) -> dict:
-    """Objetivos de cada ejercicio (para la variante elegida y para las alternativas)."""
+def plan_guardado(con: sqlite3.Connection, semana: date) -> dict | None:
+    f = con.execute("SELECT plan FROM entreno_semana WHERE semana = ?", (semana.isoformat(),)).fetchone()
+    return json.loads(f[0]) if f else None
+
+
+def rutina_semana(con: sqlite3.Connection, semana: date) -> dict | None:
+    """La rutina de esa semana: la ajustada el lunes si la hay; si no, la del bloque."""
+    p = plan_guardado(con, semana)
+    if p and (p.get("ajuste") or {}).get("rutina"):
+        return p["ajuste"]["rutina"]
+    bloque = bloque_en_vigor(con, semana)
+    return bloque[1] if bloque else None
+
+
+def _min(s: int) -> str:
+    """Descanso legible: 90 → «1,5 min», 120 → «2 min», 75 → «75 s»."""
+    return f"{es(s / 60, 1).removesuffix(',0')} min" if s >= 60 and s % 30 == 0 else f"{s} s"
+
+
+def plan(con: sqlite3.Connection, semana: date, hoy: date, elegidas: dict[str, str] | None = None,
+         rutina: dict | None = None, ajuste: dict | None = None) -> dict:
+    """Objetivos de cada ejercicio (para la variante elegida y para las alternativas).
+
+    Si la semana ya tiene plan guardado, se mantienen su rutina (con el ajuste del lunes) y su semáforo de
+    recuperación: los objetivos no cambian a mitad de semana, solo si eliges otra variante."""
     bloque = bloque_en_vigor(con, semana)
     if bloque is None:
         raise EntrenoError("No hay rutina: ejecuta primero «healthsync.entreno --iniciar».")
-    inicio, rutina, _ = bloque
+    inicio = bloque[0]
     n = (semana - inicio).days // 7 + 1
     descarga = n % DESCARGA_CADA == 0
-    rec, rec_texto = recuperacion(con, hoy)
+    guardado = plan_guardado(con, semana) if rutina is None else None
+    if guardado:
+        # El semáforo del día en que se creó la pestaña (la columna; el JSON se reescribía antes cada 4 h)
+        rec = con.execute("SELECT recuperacion FROM entreno_semana WHERE semana = ?",
+                          (semana.isoformat(),)).fetchone()[0] or guardado["recuperacion"]
+        rec_texto = guardado["recuperacion_texto"] if rec == guardado["recuperacion"] else ""
+        ajuste = guardado.get("ajuste")
+    else:
+        rec, rec_texto = recuperacion(con, hoy)
+    rutina = rutina or (ajuste or {}).get("rutina") or bloque[1]
     elegidas = elegidas or {}
     dias = []
     for d in sorted(rutina["dias"], key=lambda x: ORDEN_DIAS.index(x["dia"])):
@@ -272,14 +311,20 @@ def plan(con: sqlite3.Connection, semana: date, hoy: date, elegidas: dict[str, s
             # Solo cuenta lo hecho antes de esta semana (una sesión a medias no cambia el objetivo)
             obj = {v: objetivo(e, sesiones(con, v, antes_de=semana), peso_inicial(con, v), rec, descarga)
                    for v in e["variantes"]}
+            if e.get("descanso_s"):
+                for o in obj.values():
+                    o["texto"] += f" · descanso {_min(e['descanso_s'])}"
             elegida = elegidas.get(e["id"]) if elegidas.get(e["id"]) in obj else e["variantes"][0]
             ejercicios.append({"id": e["id"], "variante": elegida, "variantes": e["variantes"],
                                "objetivos": obj, "nota": e.get("nota", "")})
         dias.append({"id": d["id"], "nombre": d["nombre"], "dia": d["dia"], "fecha": fecha.isoformat(),
                      "ejercicios": ejercicios})
-    return {"semana": semana.isoformat(), "bloque_inicio": inicio.isoformat(), "semana_bloque": n,
-            "descarga": descarga, "recuperacion": rec, "recuperacion_texto": rec_texto,
-            "calentamiento": rutina.get("calentamiento", ""), "dias": dias}
+    p = {"semana": semana.isoformat(), "bloque_inicio": inicio.isoformat(), "semana_bloque": n,
+         "descarga": descarga, "recuperacion": rec, "recuperacion_texto": rec_texto,
+         "calentamiento": rutina.get("calentamiento", ""), "dias": dias}
+    if ajuste:
+        p["ajuste"] = ajuste
+    return p
 
 
 def texto_plan(p: dict, solo_dia: str | None = None) -> str:
@@ -322,14 +367,9 @@ def esquema_rutina() -> dict:
     })
 
 
-def prompt_cambio(rutina: dict, motivo: str, resumen: str) -> str:
-    return f"""Eres un entrenador personal y readaptador con experiencia en lesiones. Revisa la rutina de un hombre de
-27 años, avanzado antes de una operación de rodilla, que entrena en un Basic-Fit (máquinas, poleas, mancuernas,
-multipower) 4 días a la semana, unos 60 minutos, en déficit calórico moderado (recomposición corporal).
-
-MOTIVO DEL CAMBIO: {motivo}
-
-REGLAS QUE NO SE PUEDEN SALTAR (un programa las comprueba):
+def reglas() -> str:
+    """Reglas de la rutina para Gemini (las mismas que comprueba validar_rutina)."""
+    return f"""REGLAS QUE NO SE PUEDEN SALTAR (un programa las comprueba):
 - Rodilla derecha operada (menisco externo): NUNCA más de {RODILLA_MAX}° de flexión con carga. Nada de sentadilla
   profunda, búlgara, zancada larga, sissy, prensa sin tope ni saltos. Pon en "rodilla_max" la flexión máxima de
   rodilla de cada ejercicio (0 si no se flexiona).
@@ -346,8 +386,17 @@ REGLAS QUE NO SE PUEDEN SALTAR (un programa las comprueba):
   prevención del hombro los días de torso), 2,5 min por serie en multiarticulares y 2 en aislados. Una
   superserie ("superserie": id del otro ejercicio, en los dos) cuenta como el más largo de los dos + 30 %.
   Usa superseries de antagonistas (bíceps/tríceps, abductores/aductores) para ahorrar tiempo.
-- Cada ejercicio con 1-4 variantes (la primera es la principal; las demás, por si la máquina está ocupada).
+- Cada ejercicio con 1-4 variantes (la primera es la principal; las demás, por si la máquina está ocupada)."""
 
+
+def prompt_cambio(rutina: dict, motivo: str, resumen: str) -> str:
+    return f"""Eres un entrenador personal y readaptador con experiencia en lesiones. Revisa la rutina de un hombre de
+27 años, avanzado antes de una operación de rodilla, que entrena en un Basic-Fit (máquinas, poleas, mancuernas,
+multipower) 4 días a la semana, unos 60 minutos, en déficit calórico moderado (recomposición corporal).
+
+MOTIVO DEL CAMBIO: {motivo}
+
+{reglas()}
 QUÉ HACER: cambia los ejercicios que lo necesiten (estancados, con dolor o, si se renueva el bloque, un 30-50 %
 para dar variedad), y mantén los que van bien. Si un ejercicio sigue, conserva EXACTAMENTE su id y sus nombres de
 variante (así no se pierde su historial). Para ejercicios nuevos pon un "kg_estimado" prudente (0 si no sabes).
@@ -405,6 +454,146 @@ def proponer_cambio(rutina: dict, motivo: str, resumen: str, log=print) -> dict 
             return nueva
         log("La revisión encontró:\n- " + "\n- ".join(errores))
     return None
+
+
+# --------------------------------------------------------------------------
+# Gemini: ajuste de cada lunes (solo para la semana que empieza)
+# --------------------------------------------------------------------------
+def esquema_ajuste() -> dict:
+    esq = esquema_rutina()
+    ej = esq["properties"]["dias"]["items"]["properties"]["ejercicios"]["items"]
+    ej["properties"]["descanso_s"] = {"type": "integer"}
+    ej["required"].append("descanso_s")
+    lista = {"type": "array", "items": {"type": "string"}}
+    cambio = {"type": "object", "properties": {"dia": {"type": "string"}, "que": {"type": "string"},
+                                               "por_que": {"type": "string"}}, "required": ["dia", "que", "por_que"]}
+    del esq["properties"]["motivo"]
+    esq["properties"] |= {"bien": lista, "mejorar": lista, "consejos": lista,
+                          "cambios": {"type": "array", "items": cambio}}
+    esq["required"] = list(esq["properties"])
+    return esq
+
+
+def cambios_estructura(base: dict, nueva: dict) -> list[str]:
+    """Cambios de estructura de la rutina ajustada frente a la del bloque (lo que cuenta para el tope)."""
+    out, parejas = [], set()
+    dias_n = {d["id"]: d for d in nueva.get("dias", [])}
+    for db in base["dias"]:
+        eb = {e["id"]: e for e in db["ejercicios"]}
+        en = {e["id"]: e for e in dias_n.get(db["id"], {}).get("ejercicios", [])}
+        out += [f"{db['id']}: fuera {i}" for i in eb if i not in en]
+        out += [f"{db['id']}: nuevo {i}" for i in en if i not in eb]
+        for i in eb.keys() & en.keys():
+            campos = [k for k in ("variantes", "series", "reps", "rir", "superserie")
+                      if (eb[i].get(k) or "") != (en[i].get(k) or "")]
+            if campos == ["superserie"] and en[i].get("superserie"):    # una superserie nueva cuenta una vez
+                pareja = frozenset((i, en[i]["superserie"]))
+                if pareja in parejas:
+                    continue
+                parejas.add(pareja)
+                out.append(f"{db['id']}: superserie {' + '.join(sorted(pareja))}")
+            elif campos:
+                out.append(f"{db['id']}: {i} ({', '.join(campos)})")
+    return out
+
+
+def prompt_ajuste(rutina: dict, revision_txt: str, historial: str, rec: str, descarga: bool, max_cambios: int) -> str:
+    limite = (f"Como mucho {max_cambios} cambios de estructura" if max_cambios else
+              "Esta semana NO se cambia la estructura (descarga o bloque recién renovado): deja ejercicios, series, "
+              "repeticiones, RIR, variantes y superseries exactamente igual; solo pon descansos y notas")
+    return f"""Eres el entrenador personal de un hombre de 27 años, avanzado antes de una operación de rodilla, en recomposición
+corporal (déficit moderado). Entrena 4 días en un Basic-Fit, unos 60 minutos. Es lunes: repasa su semana de gimnasio y
+prepara la rutina de la semana que empieza mañana.
+
+TU TRABAJO:
+1. Balance de la semana con los datos de abajo (lo que apuntó, lo que registró el reloj y la valoración de cada sesión):
+   "bien" (2-4 puntos) y "mejorar" (2-4 puntos: errores que se repiten, descansos, duración, calibración del RIR,
+   técnica, sesiones saltadas). Concreto y basado en los datos; no inventes.
+2. Ajusta la rutina SOLO PARA ESTA SEMANA, partiendo de la RUTINA DEL BLOQUE. El lunes siguiente se vuelve a partir
+   de la del bloque: si un ajuste anterior funcionó, repítelo; si no, cámbialo (mira el HISTORIAL).
+   Puedes quitar o añadir ejercicios, series o repeticiones, cambiar el RIR o hacer superseries, por ejemplo para que
+   la sesión real quepa en {MAX_MINUTOS} min o para dar más estímulo donde se queda corto. Si la semana fue bien, no
+   cambies nada: cambiar por cambiar no ayuda. {limite}. Cuenta como un cambio: cada ejercicio que entra o sale, y
+   cada ejercicio que sigue pero con otras series, repeticiones, RIR, variantes o superserie.
+3. "descanso_s" en TODOS los ejercicios: descanso recomendado entre series (60-180 s lo normal; {DESCANSO_S[0]}-{DESCANSO_S[1]}),
+   pensando en la duración real de sus sesiones.
+4. "cambios": cada cambio de estructura con su día, qué cambia y por qué (vacío si no hay).
+5. "consejos": 2-3 consejos para la semana (descanso, técnica, asma, constancia). NO hables de pesos: los kilos los
+   calcula un programa con la doble progresión y no se tocan.
+
+Recuperación para esta semana: {rec}.
+Conserva EXACTAMENTE el id y los nombres de variante de los ejercicios que sigan (así no se pierde su historial).
+Para un ejercicio nuevo pon un "kg_estimado" prudente (0 si no sabes).
+
+{reglas()}
+
+RUTINA DEL BLOQUE (JSON):
+{json.dumps(rutina, ensure_ascii=False)}
+
+HISTORIAL DE AJUSTES DE LAS SEMANAS ANTERIORES:
+{historial or "(ninguno todavía)"}
+
+SEMANA QUE TERMINA (sesiones de los últimos 7 días):
+{revision_txt}"""
+
+
+def historial_ajustes(con: sqlite3.Connection, semana: date, semanas: int = 3) -> str:
+    lineas = []
+    for sem, txt in con.execute("SELECT semana, plan FROM entreno_semana WHERE semana < ? ORDER BY semana DESC LIMIT ?",
+                                (semana.isoformat(), semanas)).fetchall()[::-1]:
+        a = json.loads(txt).get("ajuste") or {}
+        if not a:
+            continue
+        cambios = "; ".join(f"{c['dia']}: {c['que']} ({c['por_que']})" for c in a.get("cambios", [])) or "sin cambios"
+        lineas.append(f"Semana del {date.fromisoformat(sem):%d/%m}: {cambios}. A mejorar entonces: "
+                      + " / ".join(a.get("mejorar", [])))
+    return "\n".join(lineas)
+
+
+def ajustar_semana(rutina: dict, revision_txt: str, historial: str, rec: str, descarga: bool, max_cambios: int,
+                   log=print) -> tuple[dict | None, str]:
+    """Pide a Gemini el balance y la rutina ajustada, y la revisa (reglas y tope de cambios). Devuelve
+    (ajuste, error): ajuste con bien, mejorar, consejos, cambios y rutina; None si no hubo una válida."""
+    from .gemini import GeminiError, generar
+    texto = prompt_ajuste(rutina, revision_txt, historial, rec, descarga, max_cambios)
+    nueva, errores, ultimo_error = None, [], ""
+    for intento in range(3):
+        log(f"Gemini: ajuste de la semana (intento {intento + 1})…")
+        pet = texto
+        if nueva is not None:
+            pet += ("\n\nTU PROPUESTA ANTERIOR:\n" + json.dumps(nueva, ensure_ascii=False) +
+                    "\n\nINCUMPLE ESTO; corrígela y devuélvela completa:\n- " + "\n- ".join(errores))
+        try:
+            nueva = json.loads(generar(MODELO, pet, esquema=esquema_ajuste(), razonamiento="high",
+                                       max_salida=MAX_SALIDA_RUTINA, timeout=1200))
+        except (GeminiError, json.JSONDecodeError) as e:
+            log(f"Respuesta no válida: {e}")
+            nueva, ultimo_error = None, str(e)
+            continue
+        r = {"dias": nueva.get("dias", []), "calentamiento": nueva.get("calentamiento") or rutina.get("calentamiento", "")}
+        errores = validar_rutina(r)
+        cambios = cambios_estructura(rutina, r)
+        if len(cambios) > max_cambios:
+            errores.append(f"{len(cambios)} cambios de estructura (máximo {max_cambios}): {'; '.join(cambios)}.")
+        if not errores:
+            return {"bien": nueva.get("bien", []), "mejorar": nueva.get("mejorar", []),
+                    "consejos": nueva.get("consejos", []), "cambios": nueva.get("cambios", []) if cambios else [],
+                    "rutina": r}, ""
+        log("La revisión encontró:\n- " + "\n- ".join(errores))
+        ultimo_error = errores[0]
+    return None, ultimo_error
+
+
+def _pesos_estimados(con: sqlite3.Connection, rutina: dict) -> None:
+    """Quita los kg_estimado de Gemini de la rutina y los guarda como peso de partida de variantes nuevas."""
+    for d in rutina["dias"]:
+        for e in d["ejercicios"]:
+            kg = e.pop("kg_estimado", 0)
+            for v in e["variantes"]:
+                if kg and not sesiones(con, v) and peso_inicial(con, v)[0] is None:
+                    con.execute("INSERT OR REPLACE INTO pesos_iniciales VALUES (?, ?, ?)",
+                                (v, kg, "Estimado por Gemini: ajústalo si hace falta"))
+    con.commit()
 
 
 def consejos(p: dict, resumen: str, cambios: str = "") -> str:
@@ -519,14 +708,16 @@ def leer_filas(filas: list[list]) -> tuple[list[dict], dict[str, str]]:
         kg, reps, rir = _num(f[4]), _num(f[5]), _num(f[6])
         if kg is not None and reps is not None:
             hechas.append({"id": fid, "semana": sem, "dia": dia, "ejercicio": ej, "variante": variante,
-                           "serie": int(n), "kg": kg, "reps": int(reps), "rir": rir, "notas": str(f[7] or "")})
+                           "serie": int(n), "kg": kg, "reps": int(reps), "rir": rir, "notas": str(f[7] or ""),
+                           "objetivo": str(f[3] or "")})
     return hechas, elegidas
 
 
 def guardar_series(con: sqlite3.Connection, hechas: list[dict], semana: str) -> int:
     con.execute("DELETE FROM series WHERE semana = ?", (semana,))      # el Sheet manda (borrados incluidos)
-    con.executemany("INSERT INTO series (id, semana, dia, ejercicio, variante, serie, kg, reps, rir, notas) "
-                    "VALUES (:id, :semana, :dia, :ejercicio, :variante, :serie, :kg, :reps, :rir, :notas)", hechas)
+    con.executemany("INSERT INTO series (id, semana, dia, ejercicio, variante, serie, kg, reps, rir, notas, objetivo) "
+                    "VALUES (:id, :semana, :dia, :ejercicio, :variante, :serie, :kg, :reps, :rir, :notas, :objetivo)",
+                    [{"objetivo": ""} | h for h in hechas])
     con.commit()
     return len(hechas)
 
@@ -590,8 +781,9 @@ def leer(con: sqlite3.Connection, hoy: date, log=print) -> int:
 # --------------------------------------------------------------------------
 # Lunes: semana nueva
 # --------------------------------------------------------------------------
-def preparar_semana(con: sqlite3.Connection, hoy: date, log=print) -> tuple[dict, str, str]:
-    """Renueva la rutina si toca, calcula el plan y pide los consejos. Devuelve (plan, consejos, cambios)."""
+def preparar_semana(con: sqlite3.Connection, hoy: date, log=print, ahora: datetime | None = None) -> tuple[dict, str, str]:
+    """Renueva la rutina si toca, ajusta la semana con lo que pasó en la anterior, calcula el plan y pide los
+    consejos. Devuelve (plan, consejos, cambios del bloque). El ajuste va en plan["ajuste"]."""
     semana = calorias.proximo_martes(hoy)
     bloque = bloque_en_vigor(con, semana)
     if bloque is None:
@@ -611,20 +803,53 @@ def preparar_semana(con: sqlite3.Connection, hoy: date, log=print) -> tuple[dict
     if motivo:
         nueva = proponer_cambio(rutina, motivo, resumen, log)
         if nueva:
-            for d in nueva["dias"]:
-                for e in d["ejercicios"]:
-                    kg = e.pop("kg_estimado", 0)
-                    for v in e["variantes"]:
-                        if kg and not sesiones(con, v) and peso_inicial(con, v)[0] is None:
-                            con.execute("INSERT OR REPLACE INTO pesos_iniciales VALUES (?, ?, ?)",
-                                        (v, kg, "Estimado por Gemini: ajústalo si hace falta"))
+            _pesos_estimados(con, nueva)
             cambios = nueva.pop("motivo", "")
             guardar_bloque(con, semana if n > SEMANAS_BLOQUE else inicio, nueva,
                            "ia" if n > SEMANAS_BLOQUE else "ia_parcial", cambios)
+            rutina = nueva
         else:
             cambios = "(Gemini no dio una rutina que cumpla las reglas: se mantiene la actual)"
-    p = plan(con, semana, hoy)
+    # Ajuste solo para esta semana, con las sesiones de los últimos 7 días (el lunes de la semana pasada incluido)
+    from . import analisis
+    rev, n_sesiones = analisis.revision(con, hoy - timedelta(days=7), hoy, ahora or datetime.now(TZ))
+    ajuste = None
+    if n_sesiones:
+        n_sem = (semana - bloque_en_vigor(con, semana)[0]).days // 7 + 1
+        descarga = n_sem % DESCARGA_CADA == 0
+        rec, rec_texto = recuperacion(con, hoy)
+        max_cambios = 0 if (descarga or (motivo and nueva)) else MAX_CAMBIOS_SEMANA
+        ajuste, error = ajustar_semana(rutina, rev, historial_ajustes(con, semana),
+                                       f"{rec.replace('_', ' ')} ({rec_texto})", descarga, max_cambios, log)
+        if ajuste:
+            _pesos_estimados(con, ajuste["rutina"])
+        else:
+            log(f"Sin ajuste esta semana: {error}")
+    p = plan(con, semana, hoy, rutina=(ajuste or {}).get("rutina") or rutina, ajuste=ajuste)
+    if ajuste:
+        return p, "\n".join(f"- {c}" for c in ajuste["consejos"]), cambios
     return p, consejos(p, resumen, cambios), cambios
+
+
+def mensaje_semana(p: dict, consejos_txt: str, cambios_bloque: str, enlace: str | None) -> str:
+    """Mensaje del lunes (HTML de Telegram): balance de la semana, ajustes, consejos y enlace al Sheet."""
+    from html import escape
+    a = p.get("ajuste") or {}
+    lineas = [f"🏋️ <b>Gimnasio: semana {p['semana_bloque']} del bloque</b>" + (" (descarga)" if p["descarga"] else "")
+              + f", recuperación {escape(p['recuperacion'].replace('_', ' '))}"]
+    if cambios_bloque:
+        lineas += ["", f"🔄 <b>Rutina renovada:</b> {escape(cambios_bloque)}"]
+    if a.get("bien") or a.get("mejorar"):
+        lineas += ["", "📊 <b>Tu semana</b>"] + [f"✅ {escape(x)}" for x in a.get("bien", [])] \
+                  + [f"⚠️ {escape(x)}" for x in a.get("mejorar", [])]
+    if a:
+        lineas += ["", "🔧 <b>Ajustes solo para esta semana</b>"]
+        lineas += ([f"• {escape(c['dia'])}: {escape(c['que'])} — {escape(c['por_que'])}" for c in a["cambios"]]
+                   or ["• Ninguno: la rutina del bloque tal cual, con los descansos recomendados."])
+    if consejos_txt:
+        lineas += ["", "💡 <b>Consejos</b>", escape(consejos_txt)]
+    lineas += ["", (f'<a href="{escape(enlace)}">Abrir el Sheet</a> · ' if enlace else "") + "/entreno para la sesión del día"]
+    return "\n".join(lineas)
 
 
 def guardar_semana(con: sqlite3.Connection, p: dict, pestana: str | None, consejos_txt: str) -> None:
@@ -681,7 +906,7 @@ def iniciar(con: sqlite3.Connection, pesos: Path | None, hoy: date, log=print, r
             ["Si la máquina está ocupada, cambia la variante en el desplegable de la primera serie."],
             ["La columna «Si cambias de variante» te dice el objetivo de las alternativas."],
             ["Si algo duele o molesta, escríbelo en Notas («dolor rodilla 4/10»): la siguiente vez baja un 20 %."],
-            ["La Pi lee el Sheet cada 4 h y actualiza los objetivos de lo que aún no has hecho."],
+            ["La Pi lee el Sheet cada 4 h; si cambias de variante, pone el objetivo de la nueva."],
             ["Si un día cambias el entreno al miércoles, haz esa sesión y ya: el orden no importa."]])
         log(f"Sheet creado: {sheets.enlace(id_hoja)}")
     return semana
@@ -714,6 +939,9 @@ def main() -> int:
             return 0
         if args.leer:
             leer(con, hoy)
+            if not args.fecha:                         # sesiones terminadas: valoración por Telegram
+                from . import analisis
+                analisis.analizar_pendientes(con, datetime.now(TZ))
             return 0
         if args.guardar:
             from . import api, sheets, telegram
@@ -724,12 +952,8 @@ def main() -> int:
             p, cons, cambios = preparar_semana(con, hoy)
             titulo = crear_pestana(api.session(TOKEN_DRIVE_FILE), hoja_id(con), p) if hoja_id(con) else None
             guardar_semana(con, p, titulo, cons)
-            msg = (f"🏋️ Gimnasio: semana {p['semana_bloque']} del bloque" + (" (descarga)" if p["descarga"] else "")
-                   + f", recuperación {p['recuperacion'].replace('_', ' ')}.\n"
-                   + (f"\n🔄 Cambios: {cambios}\n" if cambios else "")
-                   + f"\n{cons}\n\n" + (f"Sheet: {sheets.enlace(hoja_id(con))}\n" if hoja_id(con) else "")
-                   + "/entreno para la sesión del día")
-            telegram.enviar(msg)
+            telegram.enviar(mensaje_semana(p, cons, cambios, sheets.enlace(hoja_id(con)) if hoja_id(con) else None),
+                            html=True)
             print(texto_plan(p))
             print(cons)
             return 0
