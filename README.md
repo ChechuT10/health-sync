@@ -75,6 +75,7 @@ Solo responde a tu chat. Cada medida se guarda en la Raspberry y se escribe en G
 | `/hoy` | El menú de hoy |
 | `/compra` | La lista de la compra de la semana |
 | `/entreno` | La sesión de gimnasio de hoy (o la siguiente) |
+| `/analisis` | Valoración de tu último entreno: el Sheet y el reloj, revisados por Gemini (llega sola después de entrenar) |
 | `/fuera` o una foto | Comida de fuera de casa: Gemini estima un rango y eliges qué comida sustituye |
 | `/saltar` | Una comida del menú que no hiciste (no se apunta esa noche) |
 | `/estado` | Última sincronización, último peso y resumen de 7 días |

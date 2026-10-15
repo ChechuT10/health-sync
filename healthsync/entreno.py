@@ -14,6 +14,7 @@ Uso (como usuario healthsync, desde /opt/healthsync/app):
   python -m healthsync.entreno                        # enseña el plan de la semana que viene
   python -m healthsync.entreno --guardar              # lunes: plan, pestaña nueva, consejos y Telegram
   python -m healthsync.entreno --leer                 # cada 4 h (con la sincronización): lee el Sheet
+                                                      # y analiza las sesiones terminadas (healthsync.analisis)
 """
 from __future__ import annotations
 
@@ -519,14 +520,16 @@ def leer_filas(filas: list[list]) -> tuple[list[dict], dict[str, str]]:
         kg, reps, rir = _num(f[4]), _num(f[5]), _num(f[6])
         if kg is not None and reps is not None:
             hechas.append({"id": fid, "semana": sem, "dia": dia, "ejercicio": ej, "variante": variante,
-                           "serie": int(n), "kg": kg, "reps": int(reps), "rir": rir, "notas": str(f[7] or "")})
+                           "serie": int(n), "kg": kg, "reps": int(reps), "rir": rir, "notas": str(f[7] or ""),
+                           "objetivo": str(f[3] or "")})
     return hechas, elegidas
 
 
 def guardar_series(con: sqlite3.Connection, hechas: list[dict], semana: str) -> int:
     con.execute("DELETE FROM series WHERE semana = ?", (semana,))      # el Sheet manda (borrados incluidos)
-    con.executemany("INSERT INTO series (id, semana, dia, ejercicio, variante, serie, kg, reps, rir, notas) "
-                    "VALUES (:id, :semana, :dia, :ejercicio, :variante, :serie, :kg, :reps, :rir, :notas)", hechas)
+    con.executemany("INSERT INTO series (id, semana, dia, ejercicio, variante, serie, kg, reps, rir, notas, objetivo) "
+                    "VALUES (:id, :semana, :dia, :ejercicio, :variante, :serie, :kg, :reps, :rir, :notas, :objetivo)",
+                    [{"objetivo": ""} | h for h in hechas])
     con.commit()
     return len(hechas)
 
@@ -714,6 +717,9 @@ def main() -> int:
             return 0
         if args.leer:
             leer(con, hoy)
+            if not args.fecha:                         # sesiones terminadas: valoración por Telegram
+                from . import analisis
+                analisis.analizar_pendientes(con, datetime.now(TZ))
             return 0
         if args.guardar:
             from . import api, sheets, telegram

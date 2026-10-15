@@ -160,6 +160,7 @@ class ConBase(unittest.TestCase):
         self.assertEqual(len(hechas), 2)
         self.assertEqual({h["variante"] for h in hechas}, {"Press convergente en máquina"})
         self.assertEqual(hechas[1]["kg"], 42.5)
+        self.assertIn("28 kg", hechas[0]["objetivo"])                      # el objetivo que ponía el Sheet
         e.guardar_series(self.con, hechas, p["semana"])
         sig = e.plan(self.con, MARTES + timedelta(days=7), LUNES + timedelta(days=7))
         t1 = next(d for d in sig["dias"] if d["id"] == "T1")

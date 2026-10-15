@@ -168,9 +168,19 @@ CREATE TABLE IF NOT EXISTS series (
     reps        INTEGER,
     rir         REAL,
     notas       TEXT,
-    leido       TEXT NOT NULL DEFAULT (datetime('now'))
+    leido       TEXT NOT NULL DEFAULT (datetime('now')),
+    objetivo    TEXT                -- el que ponía el Sheet al apuntarla (columna Objetivo)
 );
 CREATE INDEX IF NOT EXISTS series_variante ON series (variante, semana);
+
+-- Valoración de cada sesión de gimnasio (Gemini, con el Sheet y el reloj); una por día de la rutina
+CREATE TABLE IF NOT EXISTS analisis_entreno (
+    id      TEXT PRIMARY KEY,   -- semana|día
+    fecha   TEXT NOT NULL,      -- día en que entrenaste
+    sesion  TEXT,               -- id del entrenamiento del reloj (NULL si no lo llevabas)
+    texto   TEXT NOT NULL,
+    creado  TEXT NOT NULL DEFAULT (datetime('now'))
+);
 
 -- Lo que se come cada día (healthsync.comidas): las del menú (se escriben a las 23:30), las de fuera
 -- (foto o descripción al bot, estimadas por Gemini) y las saltadas. Una fila por comida.
@@ -226,4 +236,7 @@ def conectar(ruta: Path) -> sqlite3.Connection:
     con.execute("PRAGMA synchronous=NORMAL")
     con.execute("PRAGMA foreign_keys=ON")
     con.executescript(ESQUEMA)
+    # Columnas añadidas después de crear la base de datos de la Pi
+    if "objetivo" not in {f[1] for f in con.execute("PRAGMA table_info(series)")}:
+        con.execute("ALTER TABLE series ADD COLUMN objetivo TEXT")
     return con

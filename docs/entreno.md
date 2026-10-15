@@ -23,7 +23,15 @@ Rodilla ≤ 90° con carga (cada ejercicio declara su flexión máxima) y nada d
 ## Google Sheet
 La Pi crea **«Health Sync · Gimnasio»** en tu Drive (permiso `drive.file`: solo ve lo que crea ella). Cada lunes, una pestaña «Semana dd-mm» con una fila por serie: variante (desplegable en la primera serie), objetivo, **Kg, Reps, RIR** (en amarillo, los rellenas tú), Notas y los objetivos de las alternativas. Las pestañas de semanas ya terminadas se **ocultan** solas (no se borran: se pueden volver a mostrar). `healthsync-sync` la lee cada 4 h (`entreno --leer`), guarda las series en la tabla `series` y actualiza los objetivos de lo que aún no has hecho.
 
-En el bot: `/entreno` (la sesión de hoy o la siguiente).
+En el bot: `/entreno` (la sesión de hoy o la siguiente) y `/analisis` (la valoración de tu último entreno).
+
+## Análisis de cada sesión
+`healthsync/analisis.py`, lanzado por `entreno --leer` cada 4 h. Junta lo que apuntas en el Sheet con la sesión de fuerza del reloj de ese día (la del día previsto o, si cambiaste el día, la más cercana de esa semana) y manda por Telegram una valoración de Gemini Flash: veredicto 🟢/🟡/🔴, qué salió bien, qué mejorar y qué toca la próxima vez.
+
+- **El código prepara los hechos; Gemini solo redacta.** Por ejercicio: el objetivo que ponía el Sheet al apuntarlo (el plan se recalcula durante la semana, así que se guarda el texto de la columna Objetivo con cada serie), las series hechas, notas, comprobaciones (fuera de rango, repeticiones que caen 3 o más, RIR 2 o más por encima del objetivo, series al fallo, peso distinto del objetivo o entre series), la sesión anterior con esa variante (volumen en kg·rep) y el objetivo de la próxima vez. De la sesión: duración frente a la estimada y al máximo de 60 min, pulso medio, zonas, kcal, sueño, VFC y recuperación. A Gemini no se le manda el peso corporal ni el % de grasa.
+- Gemini **no cambia pesos ni ejercicios** (eso sigue siendo `entreno.objetivo`), y el pulso solo lo usa para la duración, los descansos y el asma, no para juzgar el esfuerzo de una serie.
+- **Cuándo:** una sola vez por sesión, cuando el reloj la ha cerrado y están apuntados todos los ejercicios; si falta alguno, a las 12 h de parar el reloj; sin reloj, al día siguiente. Solo sesiones de los últimos 7 días. Si Gemini falla, se reintenta en la siguiente sincronización sin que esta falle.
+- Tabla `analisis_entreno`. `python -m healthsync.analisis --ver` enseña los hechos y el prompt sin llamar a Gemini; `--rehacer` vuelve a analizar la última sesión (por ejemplo, después de corregir el Sheet).
 
 ## Puesta en marcha (una vez)
 1. En el proyecto de Google Cloud de la app OAuth: activar **Google Sheets API** y **Google Drive API**, y añadir el permiso `.../auth/drive.file` en la pantalla de consentimiento.
