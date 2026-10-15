@@ -109,8 +109,8 @@ def _txt_serie(kg, reps, rir, notas="") -> str:
 def hechos(con: sqlite3.Connection, p: dict, d: dict, sesion: dict | None, ahora: datetime) -> str:
     """Resumen en texto de la sesión, con las comprobaciones hechas por el código."""
     semana = date.fromisoformat(p["semana"])
-    bloque = entreno.bloque_en_vigor(con, semana)
-    rutina_dia = next((x for x in bloque[1]["dias"] if x["id"] == d["id"]), {}) if bloque else {}
+    rutina = entreno.rutina_semana(con, semana)              # con el ajuste del lunes, si lo hubo
+    rutina_dia = next((x for x in rutina["dias"] if x["id"] == d["id"]), {}) if rutina else {}
     defs = {e["id"]: e for e in rutina_dia.get("ejercicios", [])}
     apuntado = _series(con, p["semana"], d["id"])
     elegidas = {ej: filas[0][0] for ej, filas in apuntado.items()}
@@ -274,6 +274,34 @@ def analizar_pendientes(con: sqlite3.Connection, ahora: datetime, log=print) -> 
         log(f"Análisis de {d['nombre']} ({p['semana']}) hecho.")
         n += 1
     return n
+
+
+def revision(con: sqlite3.Connection, desde: date, hasta: date, ahora: datetime) -> tuple[str, int]:
+    """Hechos y valoración de cada sesión entre desde y hasta (sin incluir), para el ajuste del lunes.
+    Devuelve (texto, número de sesiones con series)."""
+    bloques, n = [], 0
+    for txt, creado in con.execute("SELECT plan, creado FROM entreno_semana WHERE semana > ? AND semana < ? ORDER BY semana",
+                                   ((desde - timedelta(days=7)).isoformat(), hasta.isoformat())).fetchall():
+        p = json.loads(txt)
+        creada = date.fromisoformat(creado[:10])          # días anteriores a la pestaña (rutina adelantada): no cuentan
+        con_series = [d["id"] for d in p["dias"] if _series(con, p["semana"], d["id"])]
+        reloj = sesiones_reloj(con, p, con_series)
+        for d in p["dias"]:
+            s = reloj.get(d["id"])
+            fecha = date.fromisoformat(s["fecha"] if s else d["fecha"])
+            if not desde <= fecha < hasta:
+                continue
+            if d["id"] not in con_series:
+                if fecha < creada:
+                    continue
+                bloques.append(f"SESIÓN: {d['nombre']}, prevista el {fecha:%d/%m}: SIN SERIES APUNTADAS "
+                               "(no entrenó o no lo anotó).")
+                continue
+            texto = hechos(con, p, d, s, ahora)
+            f = con.execute("SELECT texto FROM analisis_entreno WHERE id = ?", (f"{p['semana']}|{d['id']}",)).fetchone()
+            bloques.append(texto + (f"\n\nVALORACIÓN DESPUÉS DE LA SESIÓN:\n{f[0]}" if f else ""))
+            n += 1
+    return "\n\n-----\n\n".join(bloques), n
 
 
 def ultimo(con: sqlite3.Connection) -> str | None:

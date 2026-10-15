@@ -2,7 +2,7 @@
 import copy
 import json
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
@@ -202,6 +202,103 @@ class ConBase(unittest.TestCase):
             r = bot.cmd_entreno(self.con, "")
         self.assertIn("Jueves 22/10", r)
         self.assertIn("Press inclinado", r)
+
+    def test_objetivos_congelados_toda_la_semana(self):
+        e.guardar_semana(self.con, e.plan(self.con, MARTES, LUNES), "Semana 20-10", "")     # sin datos: 3 series
+        for i in range(67):                                  # a mitad de semana la recuperación pasa a rojo
+            d = MARTES + timedelta(days=2) - timedelta(days=i)
+            self.con.execute("INSERT INTO dias (fecha, tipo_dia, vfc_ms, sueno_min) VALUES (?, 'completo', ?, ?)",
+                             (d.isoformat(), 20 if i < 7 else 40 + (i % 5), 300 if i < 7 else 450))
+        jueves = MARTES + timedelta(days=2)
+        self.assertEqual(e.recuperacion(self.con, jueves)[0], "rojo")
+        p = e.plan(self.con, MARTES, jueves)                 # lo que hace la lectura del Sheet cada 4 h
+        self.assertEqual(p["recuperacion"], "sin_datos")
+        press = p["dias"][1]["ejercicios"][0]["objetivos"]["Press inclinado 30° con mancuernas, agarre neutro"]
+        self.assertEqual(press["series"], 3)
+
+    def test_cambios_de_estructura(self):
+        nueva = copy.deepcopy(BASE)
+        t1 = next(d for d in nueva["dias"] if d["id"] == "T1")
+        t1["ejercicios"][-1]["series"] = 2                    # 1
+        t1["ejercicios"].pop(0)                               # 2
+        for d in nueva["dias"]:
+            for x in d["ejercicios"]:
+                x["descanso_s"] = 90                          # el descanso no cuenta
+        self.assertEqual(len(e.cambios_estructura(BASE, nueva)), 2)
+        a, b = t1["ejercicios"][-2:]
+        a["superserie"], b["superserie"] = b["id"], a["id"]   # una superserie nueva: 1 cambio más
+        self.assertEqual(len(e.cambios_estructura(BASE, nueva)), 3)
+        self.assertEqual([e._min(s) for s in (90, 120, 75, 45)], ["1,5 min", "2 min", "75 s", "45 s"])
+
+
+class AjusteSemanal(unittest.TestCase):
+    """El lunes, Gemini ajusta la semana que empieza con las sesiones de la anterior; solo vale esa semana."""
+
+    def setUp(self):
+        self.con = conectar(Path(":memory:"))
+        e.guardar_bloque(self.con, MARTES, BASE, "base")
+        e.guardar_semana(self.con, e.plan(self.con, MARTES, LUNES), "Semana 20-10", "")
+        p = e.plan_guardado(self.con, MARTES)
+        t1 = next(d for d in p["dias"] if d["id"] == "T1")
+        for ej in t1["ejercicios"]:
+            for n in (1, 2, 3):
+                self.con.execute("INSERT INTO series (id, semana, dia, ejercicio, variante, serie, kg, reps, rir) "
+                                 "VALUES (?, ?, 'T1', ?, ?, ?, 30, ?, 2)",
+                                 (f"{MARTES}|T1|{ej['id']}|{n}", MARTES.isoformat(), ej["id"], ej["variante"], n, 11 - n))
+        self.con.execute("INSERT INTO entrenamientos (id, fecha, inicio, fin, tipo, duracion_min, fc_media) "
+                         "VALUES ('s1', '2026-10-22', '2026-10-22T18:30', '2026-10-22T19:45', 'STRENGTH_TRAINING', 75, 115)")
+        self.lunes = LUNES + timedelta(days=7)                # 26/10: prepara la semana del 27/10
+        self.ahora = datetime(2026, 10, 26, 10, 0, tzinfo=e.TZ)
+
+    def tearDown(self):
+        self.con.close()
+
+    def respuesta(self, quitar_series: int = 1) -> str:
+        r = copy.deepcopy(BASE)
+        t1 = next(d for d in r["dias"] if d["id"] == "T1")
+        for x in t1["ejercicios"][-quitar_series:]:
+            x["series"] = 2
+        for d in r["dias"]:
+            for x in d["ejercicios"]:
+                x["descanso_s"] = 90
+        return json.dumps(r | {"bien": ["Constancia"], "mejorar": ["75 min: descansos <largos>"],
+                               "consejos": ["Cronómetro"],
+                               "cambios": [{"dia": "T1", "que": "Curl a 2 series", "por_que": "Tiempo"}]})
+
+    def test_ajuste_solo_para_esa_semana(self):
+        with mock.patch("healthsync.gemini.generar", return_value=self.respuesta()) as g:
+            p, cons, _ = e.preparar_semana(self.con, self.lunes, log=lambda *_: None, ahora=self.ahora)
+        prompt = g.call_args[0][1]
+        self.assertIn("75 min", prompt)                       # la sesión del jueves, con el reloj
+        self.assertEqual(cons, "- Cronómetro")
+        t1 = next(d for d in p["dias"] if d["id"] == "T1")
+        curl = t1["ejercicios"][-1]
+        self.assertEqual(curl["objetivos"][curl["variante"]]["series"], 2)
+        self.assertIn("descanso 1,5 min", curl["objetivos"][curl["variante"]]["texto"])
+        e.guardar_semana(self.con, p, "Semana 27-10", cons)
+        # La lectura del Sheet conserva el ajuste; la semana siguiente vuelve a partir del bloque
+        self.assertEqual(e.plan(self.con, MARTES + timedelta(days=7), self.lunes)["ajuste"]["cambios"][0]["dia"], "T1")
+        self.assertEqual(e.rutina_semana(self.con, MARTES + timedelta(days=14)), BASE)
+        self.assertIn("Curl a 2 series", e.historial_ajustes(self.con, MARTES + timedelta(days=14)))
+        msg = e.mensaje_semana(p, cons, "", "https://docs.google.com/x")
+        self.assertIn('<a href="https://docs.google.com/x">Abrir el Sheet</a>', msg)
+        self.assertIn("descansos &lt;largos&gt;", msg)
+        self.assertNotIn("Sheet: https", msg)
+
+    def test_demasiados_cambios_no_se_aplican(self):
+        respuestas = iter([self.respuesta(4)] * 3 + ["- Consejo"])
+        with mock.patch("healthsync.gemini.generar", side_effect=lambda *a, **k: next(respuestas)):
+            p, cons, _ = e.preparar_semana(self.con, self.lunes, log=lambda *_: None, ahora=self.ahora)
+        self.assertNotIn("ajuste", p)
+        self.assertEqual(cons, "- Consejo")                   # consejos de siempre
+        self.assertEqual(e.cambios_estructura(BASE, BASE), [])
+
+    def test_sin_sesiones_no_hay_ajuste(self):
+        self.con.execute("DELETE FROM series")
+        with mock.patch("healthsync.gemini.generar", return_value="- Consejo") as g:
+            p, _, _ = e.preparar_semana(self.con, self.lunes, log=lambda *_: None, ahora=self.ahora)
+        self.assertEqual(g.call_count, 1)
+        self.assertNotIn("ajuste", p)
 
 
 if __name__ == "__main__":

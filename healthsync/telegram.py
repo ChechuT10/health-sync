@@ -34,13 +34,15 @@ def _api(metodo: str, **params) -> dict:
     return res["result"]
 
 
-def enviar(texto: str, botones: list[str] | None = None) -> None:
+def enviar(texto: str, botones: list[str] | None = None, html: bool = False) -> None:
     """Manda un mensaje a tu chat (texto plano; Telegram corta a 4096 caracteres). Con botones, enseña
-    un teclado de respuesta rápida (cada botón manda su texto); sin ellos, quita el que hubiera."""
+    un teclado de respuesta rápida (cada botón manda su texto); sin ellos, quita el que hubiera. Con
+    html=True, el texto va en el HTML de Telegram (<b>, <a href>…; lo demás, escapado con html.escape)."""
     teclado = ({"keyboard": [[{"text": b} for b in botones[i:i + 3]] for i in range(0, len(botones), 3)],
                 "one_time_keyboard": True, "resize_keyboard": True} if botones else {"remove_keyboard": True})
+    extra = {"parse_mode": "HTML", "link_preview_options": json.dumps({"is_disabled": True})} if html else {}
     _api("sendMessage", chat_id=CHAT_FILE.read_text().strip(), text=texto[:4000],
-         reply_markup=json.dumps(teclado, ensure_ascii=False))
+         reply_markup=json.dumps(teclado, ensure_ascii=False), **extra)
 
 
 def descargar_foto(file_id: str) -> bytes:
